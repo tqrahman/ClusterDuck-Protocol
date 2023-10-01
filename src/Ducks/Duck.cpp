@@ -492,7 +492,7 @@ String Duck::getPassword() {
   return duckNet->getPassword();
 }
 
-
+int Duck::getCurrentAverage() { return DuckRadio::getCurrentAverage(); }
 
 String Duck::getErrorString(int error) {
   String errorStr = String(error) + ": ";

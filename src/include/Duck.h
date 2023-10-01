@@ -324,6 +324,18 @@ public:
    */
   void decrypt(uint8_t* encryptedData, uint8_t* text, size_t inc);
 
+  /**
+   * @brief 
+   * 
+   */
+  int getCurrentAverage();
+
+  // /**
+  //  * @brief 
+  //  * 
+  //  */
+  // int getCurrentCount( return DuckRadio::getCurrentCount(); );
+
 protected:
   Duck(Duck const&) = delete;
   Duck& operator=(Duck const&) = delete;

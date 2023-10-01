@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include "DuckLogger.h"
 
@@ -134,10 +135,11 @@ String loadWifiPassword() {
   return epass;
 }
 
-String calculateAverage (int newValue, std::vector<byte> currentState) {
-  newAvg = (currentState[0] * currentState[1] + newValue) / (currentState[1] + 1)
-  newCounter = currentState[1] + 1
-  
+std::pair<int, int> calculateAverage(int newValue, int currentAvg, int currentCount) {
+  newAvg = (currentAvg * currentCount + newValue) / (currentCount + 1)
+  currentCount += 1
+
+  return std::make_pair(newAvg, currentCount);
 }
 
 } // namespace duckutils

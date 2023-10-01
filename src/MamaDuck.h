@@ -57,6 +57,18 @@ public:
 
   bool getDetectState();
 
+  // /**
+  //  * @brief 
+  //  * 
+  //  */
+  // int getCurrentAverage();
+
+  // /**
+  //  * @brief 
+  //  * 
+  //  */
+  // int getCurrentCount( return Duck::getCurrentCount(); );
+
 private :
   rxDoneCallback recvDataCallback;
   void handleReceivedPacket();

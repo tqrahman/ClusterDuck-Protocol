@@ -179,6 +179,10 @@ private:
 
   int getChannel() { return channel; }
 
+  int getCurrentAverage() { return currentAverage; }
+
+  int getCurrentCount() { return currentCount; } 
+
 private:
   static volatile uint16_t interruptFlags;
   void serviceInterruptFlags();
@@ -193,7 +197,9 @@ private:
 
   DuckDisplay* display = DuckDisplay::getInstance();
   int err;
-  int channel;  
+  int channel;
+  int currentAverage;
+  int currentCount;  
 };
 
 #endif

@@ -19,6 +19,9 @@ CDPCFG_LORA_CLASS lora = new Module(CDPCFG_PIN_LORA_CS, CDPCFG_PIN_LORA_DIO0,
 volatile uint16_t DuckRadio::interruptFlags = 0;
 volatile bool DuckRadio::receivedFlag = false;
 
+int currentAverage = 0;
+int currentCount = 0;
+
 DuckRadio::DuckRadio() {}
 
 int DuckRadio::setupRadio(LoraConfigParams config) {
@@ -163,6 +166,8 @@ int DuckRadio::readReceivedData(std::vector<byte>* packetBytes) {
           " snr: " + String(lora.getSNR()) +
           " fe: " + String(lora.getFrequencyError(true)) +
           " size: " + String(packet_length));
+
+  currentAverage, currentCount = duckutils::calculateAverage(lora.getRSSI(), currentAverage, currentCount);
 
   if (rxState != RADIOLIB_ERR_NONE) {
     return rxState;

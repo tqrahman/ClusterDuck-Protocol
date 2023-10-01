@@ -325,3 +325,5 @@ void MamaDuck::handleAck(const CdpPacket & packet) {
 }
 
 bool MamaDuck::getDetectState() { return duckutils::getDetectState(); }
+
+// int MamaDuck::getCurrentAverage() { return DuckRadio::getCurrentAverage(); }

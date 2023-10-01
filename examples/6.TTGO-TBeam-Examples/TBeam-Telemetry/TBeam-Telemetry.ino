@@ -171,7 +171,7 @@ bool sendData(const byte* buffer, int length) {
 String getBatteryData() {
   
   int isCharging = axp.isChargeing();
-  boolean isFullyCharged = axp.isChargingDoneIRQ();
+  bool isFullyCharged = axp.isChargingDoneIRQ();
   float batteryVoltage = axp.getBattVoltage();
   float batteryDischarge = axp.getAcinCurrent();
   float getTemp = axp.getTemp();  
@@ -203,4 +203,8 @@ String getBatteryData() {
   String(getTemp);
 
   return sensorVal;
+}
+
+String getRSSI() {
+  Serial.println("avgRSSI: "String(duck.getCurrentAverage()));
 }
