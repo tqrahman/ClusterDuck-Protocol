@@ -134,4 +134,10 @@ String loadWifiPassword() {
   return epass;
 }
 
+String calculateAverage (int newValue, std::vector<byte> currentState) {
+  newAvg = (currentState[0] * currentState[1] + newValue) / (currentState[1] + 1)
+  newCounter = currentState[1] + 1
+  
+}
+
 } // namespace duckutils
