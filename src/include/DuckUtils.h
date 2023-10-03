@@ -17,7 +17,7 @@
 #include <string>
 #include <WString.h>
 #include <vector>
-#include <utility>
+// #include <utility>
 
 #include "../DuckError.h"
 
@@ -125,17 +125,17 @@ String loadWifiSsid();
  */
 String loadWifiPassword();
 
-/**
- * @brief Calculate average and updates of values given the current average 
- * and number of values it has seen
- * 
- * @param newValue the new value
- * @param currentAverage the current average
- * @param currentCount the number of values it has seen so far
- * 
- * @returns new average, new count
- */
-std::pair<int, int> calculateAverage(int newValue, int currentAvg, int currentCount);
+// /**
+//  * @brief Calculate average and updates of values given the current average 
+//  * and number of values it has seen
+//  * 
+//  * @param newValue the new value
+//  * @param currentAverage the current average
+//  * @param currentCount the number of values it has seen so far
+//  * 
+//  * @returns new average, new count
+//  */
+// int calculateAverage(int newValue, int currentAvg, int currentCount);
 
 } // namespace duckutils
 #endif

@@ -141,6 +141,9 @@ std::string toTopicString(byte topic) {
     case topics::gp2y:
       topicString = "gp2y";
       break;
+    case topics::rssi:
+      topicString = "rssi";
+      break;
     case reservedTopic::ack:
       topicString = "ack";
       break;
@@ -176,6 +179,8 @@ int quackJson(CdpPacket packet) {
   // forward the CDP packet as a byte array and let the Network Server (or DMS) deal with
   // the parsing based on some business logic.
 
+  if
+
   std::string payload(packet.data.begin(), packet.data.end());
   std::string sduid(packet.sduid.begin(), packet.sduid.end());
   std::string dduid(packet.dduid.begin(), packet.dduid.end());
@@ -201,6 +206,10 @@ int quackJson(CdpPacket packet) {
   doc["duckType"].set(packet.duckType);
 
   std::string cdpTopic = toTopicString(packet.topic);
+
+  if(cdpTopic == "rssi") {
+    doc["Payload"] = doc["Payload"] + String(duck.getCurrentAverage());
+  }
 
   display->clear();
   display->drawString(0, 10, "New Message");

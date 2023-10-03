@@ -100,6 +100,8 @@ enum topics {
   gchat = 0x17,
   //private chat message
   pchat = 0x18,
+  // RSSI Readings
+  rssi = 0xEA,
   // MQ7 Gas Sensor
   mq7 = 0xEF,
   // GP2Y Dust Sensor

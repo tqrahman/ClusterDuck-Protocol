@@ -166,8 +166,13 @@ int DuckRadio::readReceivedData(std::vector<byte>* packetBytes) {
           " snr: " + String(lora.getSNR()) +
           " fe: " + String(lora.getFrequencyError(true)) +
           " size: " + String(packet_length));
+  
+  currentAverage = (currentAverage * currentCount + lora.getRSSI()) / (currentCount + 1);
+  currentCount += 1;
 
-  currentAverage, currentCount = duckutils::calculateAverage(lora.getRSSI(), currentAverage, currentCount);
+  if (currentCount > 10) {
+    currentCount = 1;
+  }
 
   if (rxState != RADIOLIB_ERR_NONE) {
     return rxState;
@@ -204,6 +209,8 @@ int DuckRadio::startReceive() {
 }
 
 int DuckRadio::getRSSI() { return lora.getRSSI(); }
+
+int DuckRadio::getCurrentAverage() { return currentAverage; }
 
 // TODO: implement this
 int DuckRadio::ping() { return DUCK_ERR_NOT_SUPPORTED; }
