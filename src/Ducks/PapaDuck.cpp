@@ -112,6 +112,9 @@ void PapaDuck::handleReceivedPacket() {
     rxPacket->reset();
     return;
   }
+
+  // If RSSI packet, include RSSI
+
   // build our RX DuckPacket which holds the updated path in case the packet is relayed
   bool relay = rxPacket->prepareForRelaying(&filter, data);
   if (relay) {

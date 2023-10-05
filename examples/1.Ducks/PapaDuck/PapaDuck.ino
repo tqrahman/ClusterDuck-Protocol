@@ -179,8 +179,6 @@ int quackJson(CdpPacket packet) {
   // forward the CDP packet as a byte array and let the Network Server (or DMS) deal with
   // the parsing based on some business logic.
 
-  if
-
   std::string payload(packet.data.begin(), packet.data.end());
   std::string sduid(packet.sduid.begin(), packet.sduid.end());
   std::string dduid(packet.dduid.begin(), packet.dduid.end());
@@ -208,7 +206,9 @@ int quackJson(CdpPacket packet) {
   std::string cdpTopic = toTopicString(packet.topic);
 
   if(cdpTopic == "rssi") {
-    doc["Payload"] = doc["Payload"] + String(duck.getCurrentAverage());
+    std::string newPacket = String(payload.c_str()) + " " + String(sduid.c_str()) + " " +  String(duck.getCurrentAverage());
+    doc["Payload"].set(newPacket);
+    Serial.println("[PAPA] New RSSI" + String(newPacket.c_str()));
   }
 
   display->clear();
