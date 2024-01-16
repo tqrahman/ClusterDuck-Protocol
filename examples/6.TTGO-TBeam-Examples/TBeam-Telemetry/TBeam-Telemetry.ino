@@ -86,7 +86,8 @@ static void smartDelay(unsigned long ms)
 }
 
 bool runSensor(void *) {
-    
+  
+  double battery1 = axp.getBattVoltage(); 
   // Creating a boolean to store the result
   bool result;
   
@@ -109,6 +110,12 @@ bool runSensor(void *) {
   } else {
      Serial.println("[MAMA] runSensor failed.");
   }
+
+  double battery2 = axp.getBattVoltage(); 
+
+  double voltage_use = battery1 - battery2;
+  
+   
   // Return result
   return result;
 }
