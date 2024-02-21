@@ -1,4 +1,3 @@
-
 /*
  * BOARD "WIFI_LoRa_32_V3"
  * https://heltec.org/project/wifi-lora-32-v3/

@@ -103,16 +103,14 @@
 #elif defined(ARDUINO_heltec_wireless_stick_LITE)
 #include "include/boards/heltec_wireless_stick_lite.h"
 
-
+#elif defined(ARDUINO_WIFI_LORA_32_V3)
+#include "include/boards/heltec_wifi_lora_32_V3.h"
 
 /*
  * BOARD "Heltec Cube Cell Board ASR6501 with SX1262"
  * https://heltec.org/project/htcc-ab01/
  * pio: board = cubecell_board
  */
-#elif defined(ARDUINO_heltec_wifi_lora_32_V3)
-#include "include/boards/heltec_wifi_lora_32_V3.h"
-
 #elif defined(CubeCell_Board)
 #define CDPCFG_HELTEC_CUBE_CELL
 #include "include/boards/cubecell_board.h"
