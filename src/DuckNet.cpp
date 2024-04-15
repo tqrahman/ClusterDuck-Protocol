@@ -5,6 +5,10 @@ DuckNet::DuckNet(Duck* duckIn): duck(duckIn) {
 
 #ifndef CDPCFG_WIFI_NONE
 
+CircularBuffer chatBuffer = CircularBuffer(CDPCFG_CDP_CHATBUF_SIZE);
+std::map<std::string, CircularBuffer*> chatHistories;
+std::string duckSession = duckutils::toString(BROADCAST_DUID).c_str(); //checl for issues here
+
 IPAddress apIP(CDPCFG_AP_IP1, CDPCFG_AP_IP2, CDPCFG_AP_IP3, CDPCFG_AP_IP4);
 AsyncWebServer webServer(CDPCFG_WEB_PORT);
 AsyncEventSource events("/events");
@@ -58,6 +62,46 @@ std::string DuckNet::getMuidStatusString(muidStatus status) {
   }
 }
 
+
+void DuckNet::addToChatBuffer(CdpPacket message)
+{
+  message.timeReceived = millis();
+  chatBuffer.push(message);
+  events.send("refresh" ,"refreshPage",millis());
+}
+
+std::string DuckNet::retrieveMessageHistory(CircularBuffer* buffer)
+{
+  int tail = buffer->getTail();
+  std::string json = "{";
+  json = json + " \"posts\":[";
+  bool firstMessage = true;
+
+  while(tail != buffer->getHead()){
+    if(firstMessage){
+      firstMessage = false;
+    } else{
+      json = json + ", ";
+    }
+
+    CdpPacket packet = buffer->getMessage(tail);
+    unsigned long messageAge = millis() - packet.timeReceived;
+    std::string messageAgeString = String(messageAge).c_str();
+    std::string messageBody(packet.data.begin(),packet.data.end());
+    std::string sduid(packet.sduid.begin(), packet.sduid.end());
+    std::string muid(packet.muid.begin(), packet.muid.end());
+
+    json = json + "{\"sduid\":\"" + sduid + "\", \"muid\":\"" + muid +  "\" , \"title\":\"PLACEHOLDER TITLE\", \"body\":" + messageBody + ", \"messageAge\":\"" + messageAgeString + "\"}";
+    tail++;
+    if(tail == buffer->getBufferEnd()){
+      tail = 0;
+    }
+  }
+  json = json + "]}";
+  return json;
+
+}
+
 std::string DuckNet::createMuidResponseJson(muidStatus status) {
   std::string statusStr = getMuidStatusString(status);
   std::string message = getMuidStatusMessage(status);
@@ -95,7 +139,55 @@ int DuckNet::setupWebServer(bool createCaptivePortal, std::string html) {
   webServer.on("/papamain", HTTP_GET, [&](AsyncWebServerRequest* request) {
     request->send(200, "text/html", papa_page);
   });
+
+  webServer.on("/join-chat", HTTP_GET, [&](AsyncWebServerRequest* request) {
+    request->send(200, "text/html", chat_prompt);
+  });
+  webServer.on("/chat", HTTP_GET, [&](AsyncWebServerRequest* request) {
+    request->send(200, "text/html", chat_page);
+  });
   
+  webServer.on("/chatHistory", HTTP_GET, [&](AsyncWebServerRequest* request){
+      std::string response = DuckNet::retrieveMessageHistory(&chatBuffer);
+      const char* res = response.c_str();
+      request->send(200, "text/json", res);
+  });
+
+
+  webServer.on("/chatSubmit.json", HTTP_POST, [&](AsyncWebServerRequest* request) {
+    int err = DUCK_ERR_NONE;
+
+    std::vector<byte> message;
+    std::string clientId = "";
+
+    AsyncWebParameter* p = request->getParam(0);
+    std::string msg = p->value().c_str();
+    message.insert(message.end(), msg.begin(), msg.end());
+    logdbg_ln("chatSubmit: sending message. length: %d",message.size());
+    std::vector<byte> muid;
+
+    err = duck->sendData(topics::gchat, message, BROADCAST_DUID, &muid);
+    addToChatBuffer(duck->buildCdpPacket(topics::gchat, message, BROADCAST_DUID, muid));
+
+    switch (err) {
+      case DUCK_ERR_NONE:
+      {
+        request->send(200, "text/html", "OK.");
+      }
+      break;
+      case DUCKLORA_ERR_MSG_TOO_LARGE:
+      request->send(413, "text/html", "Message payload too big!");
+      break;
+      case DUCKLORA_ERR_HANDLE_PACKET:
+      request->send(400, "text/html", "BadRequest");
+      break;
+      default:
+      request->send(500, "text/html", "Oops! Unknown error.");
+      break;
+    }
+  });
+
+
   // This will serve as an easy to access "control panel" to change settings of devices easily
   // TODO: Need to be able to turn off this feature from the application layer for security
   // TODO: Can we limit controls depending on the duck?

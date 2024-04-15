@@ -122,6 +122,16 @@ void MamaDuck::handleReceivedPacket() {
             loginfo_ln("handleReceivedPacket: packet RELAY DONE");
           }
         break;
+         case topics::gchat:{
+          packet.timeReceived = millis();
+          duckNet->addToChatBuffer(packet);
+
+          std::vector<byte> data;
+          byte numPairs = 1;
+          data.insert(data.end(), numPairs);
+          data.insert(data.end(), packet.muid.begin(), packet.muid.end());
+        }
+        break;
         default:
           err = duckRadio.relayPacket(rxPacket);
           if (err != DUCK_ERR_NONE) {
@@ -168,6 +178,17 @@ void MamaDuck::handleReceivedPacket() {
         case reservedTopic::ack:{
           handleAck(packet);
         }
+        case topics::gchat:
+        {
+          packet.timeReceived = millis();
+          duckNet->addToChatBuffer(packet);
+
+          std::vector<byte> data;
+          byte numPairs = 1;
+          data.insert(data.end(), numPairs);
+          data.insert(data.end(), packet.muid.begin(), packet.muid.end());
+        } 
+        break;
         break;
         default:
           err = duckRadio.relayPacket(rxPacket);

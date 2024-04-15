@@ -23,10 +23,13 @@ class DuckNet;
 
 #include "Duck.h"
 #include <map>
+#include "CircularBuffer.h"
 #include "DuckUtils.h"
 #include "DuckError.h"
 #include "DuckLogger.h"
 #include <string>
+#include "chatPage.h"
+#include "chatPrompt.h"
 
 #ifdef CDPCFG_WIFI_NONE
 #pragma info "WARNING: WiFi is disabled. DuckNet will not be available."
@@ -134,6 +137,13 @@ public:
     logwarn_ln("WARNING loadChannel skipped, device has no WiFi.");
   }
 
+  void addToChatBuffer(CdpPacket message) {
+    logwarn_ln("WARNING addToChatBuffer skipped, device has no WiFi.");
+  }
+  std::string retrieveMessageHistory(CircularBuffer* buffer) {
+      logwarn_ln("WARNING retrieveMessageHistory skipped, device has no WiFi.");
+      return "";
+  }
 #else
   /**
    * @brief Set up the WebServer.
@@ -259,6 +269,23 @@ public:
   bool isWifiConnected() { return (WiFi.status() == WL_CONNECTED); }
 
   static DNSServer dnsServer;
+
+  
+ /**
+   * @brief insert received packet into the chat circular buffer and
+   * send refresh page event to client
+   *
+   * @param message the packet to add to the buffer
+   */
+  void addToChatBuffer(CdpPacket message);
+
+    /**
+   * @brief retrieve all messages from from message circular buffer
+   *
+   * @returns a json array of messages with a title, body, and messageAge
+   */
+  std::string retrieveMessageHistory(CircularBuffer* buffer);
+
 #endif
 
   DuckNet(Duck* duck);

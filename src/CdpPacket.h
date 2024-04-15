@@ -96,6 +96,8 @@ enum topics {
   health = 0x15,
   // Send duck commands
   dcmd = 0x16,
+  //global chat message
+  gchat = 0x17,
   // MQ7 Gas Sensor
   mq7 = 0xEF,
   // GP2Y Dust Sensor
@@ -227,6 +229,8 @@ public:
         return "health";
       case topics::dcmd:
         return "dcmd";
+      case topics::gchat:
+        return "gchat";
       case topics::mq7:
         return "mq7";
       case topics::gp2y:
