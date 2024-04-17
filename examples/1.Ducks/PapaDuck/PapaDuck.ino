@@ -123,8 +123,8 @@ std::string toTopicString(byte topic) {
   return topicString;
 }
 
-String convertToHex(byte* data, int size) {
-  String buf = "";
+std::string convertToHex(byte* data, int size) {
+  std::string buf = "";
   buf.reserve(size * 2); // 2 digit hex
   const char* cs = "0123456789ABCDEF";
   for (int i = 0; i < size; i++) {
@@ -156,14 +156,14 @@ int quackJson(CdpPacket packet) {
   std::string path(packet.path.begin(), packet.path.end());
 
   Serial.println("[PAPA] Packet Received:");
-  Serial.println("[PAPA] sduid:   " + String(sduid.c_str()));
-  Serial.println("[PAPA] dduid:   " + String(dduid.c_str()));
+  Serial.println("[PAPA] sduid:   " + sduid.c_str());
+  Serial.println("[PAPA] dduid:   " + dduid.c_str());
 
-  Serial.println("[PAPA] muid:    " + String(muid.c_str()));
-  Serial.println("[PAPA] path:    " + String(path.c_str()));
-  Serial.println("[PAPA] data:    " + String(payload.c_str()));
-  Serial.println("[PAPA] hops:    " + String(packet.hopCount));
-  Serial.println("[PAPA] duck:    " + String(packet.duckType));
+  Serial.println("[PAPA] muid:    " + muid.c_str());
+  Serial.println("[PAPA] path:    " + path.c_str());
+  Serial.println("[PAPA] data:    " + payload.c_str());
+  Serial.println("[PAPA] hops:    " + std::to_string(packet.hopCount).c_str());
+  Serial.println("[PAPA] duck:    " + std::to_string(packet.duckType).c_str());
 
   doc["DeviceID"] = sduid;
   doc["MessageID"] = muid;
