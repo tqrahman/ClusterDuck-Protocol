@@ -44,11 +44,9 @@ void setup() {
   // and will trigger sending a counter message.
   timer.every(INTERVAL_MS, runSensor);
   Serial.println("[MAMA] Setup OK!");
-
 }
 
-
-std::vector<byte> stringToByteVector(const String& str) {
+std::vector<byte> stringToByteVector(const std::string& str) {
     std::vector<byte> byteVec;
     byteVec.reserve(str.length());
 
@@ -73,10 +71,10 @@ void loop() {
 bool runSensor(void *) {
   bool result;
   
-  String message = String("Counter:") + String(counter)+ " " +String("Free Memory:") + String(freeMemory());
+  std::string message = "Counter:" + std::to_string(counter) + " " + "Free Memory:" + std::to_string(freeMemory());
   int length = message.length();
   Serial.print("[MAMA] sensor data: ");
-  Serial.println(message);
+  Serial.println(message.c_str());
 
   result = sendData(stringToByteVector(message));
   if (result) {
@@ -96,7 +94,7 @@ bool sendData(std::vector<byte> message) {
      sentOk = true;
   }
   if (!sentOk) {
-    Serial.println("[MAMA] Failed to send data. error = " + String(err));
+    // Serial.println("[MAMA] Failed to send data. error = " + std::to_string(err).c_str());
   }
   return sentOk;
 }
