@@ -185,7 +185,7 @@ int quackJson(CdpPacket packet) {
   // std::string topic = "topic_2";
   std::string topic = "owl/device/" + sduid + "/evt/" + cdpTopic;
 
-  String jsonstat;
+  std::string jsonstat;
   serializeJson(doc, jsonstat);
 
   //Filter out private chat so it won't get sent to DMS
@@ -269,8 +269,8 @@ void setup() {
 void loop() {
 
    if (!duck.isWifiConnected() && retry) {
-      String ssid = duck.getSsid();
-      String password = duck.getPassword();
+      std::string ssid = duck.getSsid();
+      std::string password = duck.getPassword();
 
       Serial.println("[PAPA] WiFi disconnected, reconnecting to local network: " +
                      ssid);
@@ -298,7 +298,7 @@ void loop() {
 void gotMsg(char* topic, byte* payload, unsigned int payloadLength) {
   Serial.print("gotMsg: invoked for topic: "); Serial.println(topic);
 
-  if (String(topic).indexOf(CMD_STATE_WIFI) > 0) {
+  if (std::string(topic).indexOf(CMD_STATE_WIFI) > 0) {
     Serial.println("Start WiFi Command");
     byte sCmd = 1;
     std::vector<byte> sValue = {payload[0]};
@@ -316,7 +316,7 @@ void gotMsg(char* topic, byte* payload, unsigned int payloadLength) {
     } else {
       duck.sendCommand(sCmd, sValue);
     }
-  } else if (String(topic).indexOf(CMD_STATE_HEALTH) > 0) {
+  } else if (std::string(topic).indexOf(CMD_STATE_HEALTH) > 0) {
     byte sCmd = 0;
     std::vector<byte> sValue = {payload[0]};
     if(payloadLength >= 8) {
