@@ -315,8 +315,10 @@ void DuckRadio::serviceInterruptFlags() {
             lora.standby(); // we are done receiving, go to standby. We can't sleep because read buffer is not empty
         }
         if (DuckRadio::interruptFlags & RADIOLIB_SX127X_CLEAR_IRQ_FLAG_PAYLOAD_CRC_ERROR) {
-            goToReceiveMode(true); // go back to receive mode and reset the receive flag
+            // goToReceiveMode(true); // go back to receive mode and reset the receive flag
             loginfo_ln("SX127x Interrupt flag was set: payload CRC error");
+            goToReceiveMode(false);
+            lora.standby();
         }
         if (DuckRadio::interruptFlags & RADIOLIB_SX127X_CLEAR_IRQ_FLAG_VALID_HEADER) {
             loginfo_ln("SX127x Interrupt flag was set: valid header received");

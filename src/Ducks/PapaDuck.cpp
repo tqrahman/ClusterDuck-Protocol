@@ -53,7 +53,7 @@ int PapaDuck::setupWithDefaults(std::vector<byte> deviceId, std::string ssid, st
     }
   } 
 
-  duckNet->loadChannel();
+  // duckNet->loadChannel();
 
   if (ssid.length() == 0 && password.length() == 0) {
   // If WiFi credentials inside the INO are empty use the saved credentials
@@ -115,14 +115,14 @@ void PapaDuck::handleReceivedPacket() {
   if (relay) {
     logdbg_ln("relaying:  %s", duckutils::convertToHex(rxPacket->getBuffer().data(), rxPacket->getBuffer().size()).c_str());
     loginfo_ln("invoking callback in the duck application...");
-    
-    recvDataCallback(rxPacket->getBuffer());
-    
+
     if (acksEnabled) {
       const CdpPacket packet = CdpPacket(rxPacket->getBuffer());
       if (needsAck(packet)) {
         handleAck(packet);
       }
+    } else {
+      recvDataCallback(rxPacket->getBuffer());
     }
 
     loginfo_ln("handleReceivedPacket() DONE");

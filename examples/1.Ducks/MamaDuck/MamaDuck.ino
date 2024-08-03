@@ -21,7 +21,7 @@ MamaDuck duck;
 auto timer = timer_create_default();
 
 // for sending the counter message
-const int INTERVAL_MS = 60000;
+const int INTERVAL_MS = 10000;
 int counter = 1;
 bool setupOK = false;
 
