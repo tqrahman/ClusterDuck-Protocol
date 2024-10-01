@@ -1,40 +1,32 @@
-name: Documentation
+name: Deploy Doxygen Documentation
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   push:
-    branches: 
-      - master
+    branches:
+      - master  
   workflow_dispatch:
 
-permissions:
-  contents: write
-  packages: write
-  pages: write
-
 jobs:
-  doxygen:
+  deploy-docs:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
+    - name: Checkout Code
+      uses: actions/checkout@v2
 
-      - name: Install Doxygen
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y doxygen
+    - name: Install Doxygen
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y doxygen
 
-      - name: Generate docs
-        run: doxygen Doxyfile
-        working-directory: ./docs
-  
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@releases/v3
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages
-          FOLDER: docs/html
+    - name: Generate Doxygen Documentation
+      run: |
+        doxygen Doxyfile  # Make sure your Doxyfile outputs to 'html' directory
+
+    - name: Deploy to GitHub Pages
+      uses: JamesIves/github-pages-deploy-action@releases/v3
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BRANCH: gh-pages   # Ensures that the output is pushed to the gh-pages branch
+        FOLDER: html       # Directory where Doxygen outputs the files
+        CLEAN: true        # Optionally clean out old files in the gh-pages branch
