@@ -21,12 +21,13 @@ jobs:
 
     - name: Generate Doxygen Documentation
       run: doxygen docs/Doxyfile
-      working-directory: ${{ github.workspace }} # Ensure you are in the root directory of your repo
+      working-directory: ${{ github.workspace }} # This ensures Doxygen runs at the root directory
 
     - name: Deploy to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@releases/v3
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        BRANCH: gh-pages   # Ensures that the output is pushed to the gh-pages branch
-        FOLDER: docs/html  # Update this if your HTML output directory is different
-        CLEAN: true        # Optionally clean out old files in the gh-pages branch
+        BRANCH: gh-pages
+        FOLDER: temp_docs/html  # Adjusted to the new output directory
+        CLEAN: true
+
