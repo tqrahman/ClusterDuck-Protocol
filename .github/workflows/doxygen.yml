@@ -6,7 +6,6 @@ on:
   push:
     branches: 
       - master
-
   workflow_dispatch:
 
 permissions:
@@ -15,22 +14,27 @@ permissions:
   pages: write
 
 jobs:
-    doxygen:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Install Doxygen
-          run: |
-            sudo apt-get update
-            sudo apt-get install -y doxygen
-        - uses: actions/checkout@v2
+  doxygen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install Doxygen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen
+
+      - name: Generate docs
+        run: doxygen Doxyfile
+        working-directory: ./docs
   
-        - name: Generate docs
-          run: doxygen Doxyfile
-          working-directory: ./docs
-  
-        - name: Deploy to GitHub Pages
-          uses: JamesIves/github-pages-deploy-action@releases/v3
-          with:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            BRANCH: gh-pages
-            FOLDER: docs/html
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: docs/html
