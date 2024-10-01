@@ -20,13 +20,13 @@ jobs:
         sudo apt-get install -y doxygen
 
     - name: Generate Doxygen Documentation
-      run: |
-        doxygen Doxyfile  # Make sure your Doxyfile outputs to 'html' directory
+      run: doxygen docs/Doxyfile
+      working-directory: ${{ github.workspace }} # Ensure you are in the root directory of your repo
 
     - name: Deploy to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@releases/v3
       with:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         BRANCH: gh-pages   # Ensures that the output is pushed to the gh-pages branch
-        FOLDER: html       # Directory where Doxygen outputs the files
+        FOLDER: docs/html  # Update this if your HTML output directory is different
         CLEAN: true        # Optionally clean out old files in the gh-pages branch
