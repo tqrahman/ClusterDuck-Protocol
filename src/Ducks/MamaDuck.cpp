@@ -73,7 +73,7 @@ void MamaDuck::handleReceivedPacket() {
   relay = rxPacket->prepareForRelaying(&filter, data);
   if (relay) {
     //TODO: this callback is causing an issue, needs to be fixed for mamaduck to get packet data
-    //recvDataCallback(rxPacket->getBuffer());
+    recvDataCallback(rxPacket->getBuffer());
     loginfo_ln("handleReceivedPacket: packet RELAY START");
     // NOTE:
     // Ducks will only handle received message one at a time, so there is a chance the
