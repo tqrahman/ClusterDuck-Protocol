@@ -153,7 +153,57 @@ int DuckNet::setupWebServer(bool createCaptivePortal, std::string html) {
    request->send(200, "text/html", wifi_page);
    
  });
+ webServer.on("/loraParams", HTTP_GET, [&](AsyncWebServerRequest* request) {
+   request->send(200, "text/html", update_lora_params);
+   
+ });
+ webServer.on("/updateLoRaParams", HTTP_POST, [&](AsyncWebServerRequest* request){
+  int paramsNumber = request->params();
+    uint8_t sf = 0;
+    float bw = 0;
 
+    for (int i = 0; i < paramsNumber; i++) {
+      const AsyncWebParameter* p = request->getParam(i);
+
+      std::string name = p->name().c_str();
+      std::string value = p->value().c_str();
+      bool error_state = false;
+
+      if (name == "sf") {
+        if(p->value().c_str() != ""){
+          sf = std::stoi(p->value().c_str());
+        } else{
+          sf = 0;
+        }
+      } else if (name == "bw") {
+        if(p->value().c_str() != ""){
+          bw = std::stof(p->value().c_str());
+        } else{
+          bw = 0;
+        }
+        
+      }
+
+      if(sf != 0){
+        int err = duckRadio.updateSF(sf);
+        if (err != 0){
+          error_state = true;
+        }   
+      }
+      if(bw != 0){
+        int err = duckRadio.updateBW(bw);
+        if (err != 0){
+          error_state = true;
+        }   
+      }
+      
+      if (error_state){
+        request->send(500, "text/plain", "Invalid Parameters");
+      } else{
+        request->send(200, "text/plain", "Success");
+      }
+    }
+ });
   webServer.on("/changeSSID", HTTP_POST, [&](AsyncWebServerRequest* request) {
     int paramsNumber = request->params();
     std::string val = "";

@@ -71,6 +71,21 @@ public:
   int setupRadio(LoraConfigParams config);
 
   /**
+   * @brief update the lora module bandwidth
+   * 
+   * @param bw    new lora bandwidth setting
+   * @returns 0 if update was successful, an error code otherwise. 
+   */
+  int updateBW(float bw);
+   /**
+   * @brief update the lora module spreading factor
+   * 
+   * @param bw    new lora spreading factor setting
+   * @returns 0 if update was successful, an error code otherwise. 
+   */
+  int updateSF(uint8_t sf);
+
+  /**
    * @brief Set sync word used to communicate between radios. 0x12 for private and 0x34 for public channels.
    * 
    * @param syncWord set byte syncWord

@@ -55,6 +55,14 @@ int DuckRadio::checkLoRaParameters(LoraConfigParams config) {
     }
     return rc;
 }
+int DuckRadio::updateBW(float bw){
+    int rc = lora.setBandwidth(bw);
+    return rc;
+}
+int DuckRadio::updateSF(uint8_t sf){
+    int rc = lora.setSpreadingFactor(sf);
+    return rc;
+}
 
 int DuckRadio::setupRadio(LoraConfigParams config) {
     loginfo_ln("Setting up RADIOLIB LoRa radio...");

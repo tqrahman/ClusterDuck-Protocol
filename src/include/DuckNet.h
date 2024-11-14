@@ -47,6 +47,7 @@
 #include "controlPanel.h"
 #include "cdpHome.h"
 #include "papaHome.h"
+#include "changeLoraParams.h"
 
 
 #endif
