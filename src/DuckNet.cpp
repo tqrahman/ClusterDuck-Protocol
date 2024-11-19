@@ -153,6 +153,14 @@ int DuckNet::setupWebServer(bool createCaptivePortal, std::string html) {
    request->send(200, "text/html", wifi_page);
    
  });
+
+  webServer.on("/controlpanel", HTTP_GET, [&](AsyncWebServerRequest* request) {
+    AsyncWebServerResponse* response =
+    request->beginResponse(200, "text/html", controlPanel);
+
+    request->send(response);
+  });
+
  webServer.on("/loraParams", HTTP_GET, [&](AsyncWebServerRequest* request) {
    request->send(200, "text/html", update_lora_params);
    
