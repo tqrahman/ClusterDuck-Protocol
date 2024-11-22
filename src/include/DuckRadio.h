@@ -149,6 +149,13 @@ public:
    */
   int getRSSI();
 
+    /**
+   * @brief Get the current SNR value.
+   *
+   * @returns An integer representing the rssi value.
+   */
+  int getSNR();
+
   /**
    * @brief Transmit a ping message.
    * 

@@ -124,3 +124,67 @@ int DuckPacket::prepareForSending(BloomFilter *filter,
   return DUCK_ERR_NONE;
 }
 
+int DuckPacket::addToBuffer(std::vector<byte> additional_data) {
+    // Ensure total data doesn't exceed max length
+    if (buffer.size() + additional_data.size() > PACKET_LENGTH) {
+        return DUCKPACKET_ERR_SIZE_INVALID;
+    }
+
+    // If crypto is enabled, encrypt additional data
+    if (duckcrypto::getState()) {
+        std::vector<uint8_t> encryptedAdditional(additional_data.size());
+        duckcrypto::encryptData(additional_data.data(), encryptedAdditional.data(), additional_data.size());
+        buffer.insert(buffer.end(), encryptedAdditional.begin(), encryptedAdditional.end());
+    } else {
+        buffer.insert(buffer.end(), additional_data.begin(), additional_data.end());
+        logdbg_ln("NewData:      %s",duckutils::convertToHex(buffer.data(), buffer.size()).c_str());
+    }
+
+    // Recalculate CRC
+    uint32_t value = CRC32::calculate(buffer.data() + DATA_CRC_POS, buffer.size() - DATA_CRC_POS);
+    
+    // Update CRC bytes in-place
+    buffer[DATA_CRC_POS] = (value >> 24) & 0xFF;
+    buffer[DATA_CRC_POS + 1] = (value >> 16) & 0xFF;
+    buffer[DATA_CRC_POS + 2] = (value >> 8) & 0xFF;
+    buffer[DATA_CRC_POS + 3] = value & 0xFF;
+
+    return DUCK_ERR_NONE;
+}
+
+int DuckPacket::addMetrics(int RSSI, int SNR) {
+    // Store original data length before adding metrics
+    size_t originalDataLength = buffer.size() - HEADER_LENGTH;
+    
+    // Create metrics data
+    std::vector<byte> additional_data;
+    additional_data.push_back((RSSI >> 8) & 0xFF);  
+    additional_data.push_back(RSSI & 0xFF);         
+    additional_data.push_back((SNR >> 8) & 0xFF);   
+    additional_data.push_back(SNR & 0xFF);          
+
+    // Check total size
+    if (buffer.size() + additional_data.size() > PACKET_LENGTH) {
+        return DUCKPACKET_ERR_SIZE_INVALID;
+    }
+
+    // Extract current data (excluding header)
+    std::vector<byte> currentData(buffer.begin() + HEADER_LENGTH, buffer.end());
+    
+    // Append new metrics
+    currentData.insert(currentData.end(), additional_data.begin(), additional_data.end());
+
+    // Calculate new CRC for all data including metrics
+    uint32_t value = CRC32::calculate(currentData.data(), currentData.size());
+    
+    // Update CRC in header
+    buffer[DATA_CRC_POS] = (value >> 24) & 0xFF;
+    buffer[DATA_CRC_POS + 1] = (value >> 16) & 0xFF;
+    buffer[DATA_CRC_POS + 2] = (value >> 8) & 0xFF;
+    buffer[DATA_CRC_POS + 3] = value & 0xFF;
+
+    // Add metrics after updating CRC
+    buffer.insert(buffer.end(), additional_data.begin(), additional_data.end());
+
+    return DUCK_ERR_NONE;
+}

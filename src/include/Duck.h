@@ -41,6 +41,14 @@ public:
    * 
    * @param name 
    */
+  void setGPS(std::string lat, std::string lng, std::string alt, std::string time);
+  
+
+  /**
+   * @brief Set the Device Name object
+   * 
+   * @param name 
+   */
   void setName(std::string name) { this->duckName = name; }
   
   /**

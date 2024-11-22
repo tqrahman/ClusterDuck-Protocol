@@ -88,6 +88,20 @@ public:
      */
     bool prepareForRelaying(BloomFilter *filter, std::vector<byte> dataBuffer);
     
+     /**
+     * @brief Adds data to the buffer.
+     * 
+     * @returns DUCK_ERR_NONE if the operation was successful, otherwise an error code. 
+     */
+    int addToBuffer(std::vector<byte> additional_data);
+    
+    /**
+     * @brief Adds rssi and snr to the buffer.
+     * 
+     * @returns DUCK_ERR_NONE if the operation was successful, otherwise an error code. 
+     */
+    int addMetrics(int RSSI, int SNR);
+    
     /**
      * @brief Get the Cdp Packet byte vector.
      * 

@@ -110,6 +110,11 @@ void PapaDuck::handleReceivedPacket() {
     loginfo_ln("invoking callback in the duck application...");
     
     recvDataCallback(rxPacket->getBuffer());
+
+    int RSSI = duckRadio.getRSSI();
+    int SNR = duckRadio.getSNR();
+
+    rxPacket->addMetrics(RSSI, SNR);
     
     if (acksEnabled) {
       const CdpPacket packet = CdpPacket(rxPacket->getBuffer());

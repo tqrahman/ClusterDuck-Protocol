@@ -74,12 +74,26 @@ void MamaDuck::handleReceivedPacket() {
   if (relay) {
     //TODO: this callback is causing an issue, needs to be fixed for mamaduck to get packet data
     recvDataCallback(rxPacket->getBuffer());
+    // if (insert) {
+
+    // }
     loginfo_ln("handleReceivedPacket: packet RELAY START");
     // NOTE:
     // Ducks will only handle received message one at a time, so there is a chance the
     // packet being sent below will never be received, especially if the cluster is small
     // there are not many alternative paths to reach other mama ducks that could relay the packet.
     
+    std::vector<byte> additional_data;
+
+    int RSSI = duckRadio.getRSSI();
+    int SNR = duckRadio.getSNR();
+    additional_data.push_back((RSSI >> 8) & 0xFF);  // High byte
+    additional_data.push_back(RSSI & 0xFF);         // Low byte
+    additional_data.push_back((SNR >> 8) & 0xFF);   // High byte
+    additional_data.push_back(SNR & 0xFF);   
+
+    rxPacket->addToBuffer(additional_data);
+
     CdpPacket packet = CdpPacket(rxPacket->getBuffer());
 
     //Check if Duck is desitination for this packet before relaying
