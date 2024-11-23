@@ -108,7 +108,7 @@ void PapaDuck::handleReceivedPacket() {
   if (relay) {
     logdbg_ln("relaying:  %s", duckutils::convertToHex(rxPacket->getBuffer().data(), rxPacket->getBuffer().size()).c_str());
     loginfo_ln("invoking callback in the duck application...");
-    recvDataCallback(rxPacket->getBuffer());
+    // recvDataCallback(rxPacket->getBuffer());
 
     std::vector<byte> additional_data;
 
