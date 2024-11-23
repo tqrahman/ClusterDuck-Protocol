@@ -108,11 +108,20 @@ void PapaDuck::handleReceivedPacket() {
   if (relay) {
     logdbg_ln("relaying:  %s", duckutils::convertToHex(rxPacket->getBuffer().data(), rxPacket->getBuffer().size()).c_str());
     loginfo_ln("invoking callback in the duck application...");
+    recvDataCallback(rxPacket->getBuffer());
+
+    std::vector<byte> additional_data;
 
     int RSSI = duckRadio.getRSSI();
-    int SNR = duckRadio.getSNR();
+    double SNR = duckRadio.getSNR();
 
-    rxPacket->addMetrics(RSSI, SNR);
+    std::string rssiString = std::string(" RSSI:") + std::to_string(RSSI);
+    std::string snrString =  std::string(" SNR:")+ std::to_string(SNR);
+
+    // std::string duckGps = Duck::getGPS();
+    additional_data.insert(additional_data.end(), rssiString.begin(), rssiString.end());
+    additional_data.insert(additional_data.end(), snrString.begin(), snrString.end());
+    // additional_data.insert(additional_data.end(), duckGps.begin(), duckGps.end());
 
     recvDataCallback(rxPacket->getBuffer());
     
