@@ -60,8 +60,12 @@ void Duck::decrypt(uint8_t* encryptedData, uint8_t* text, size_t inc) {
   duckcrypto::decryptData(encryptedData, text, inc);
 }
 
-void Duck::setGPS(std::string lat, std::string lng, std::string alt, std::string time) {
-  
+void Duck::setGPS(std::string gps) {
+  gpsData = gps;
+}
+
+std::string Duck::getGPS() {
+  return gpsData;
 }
 
 void Duck::logIfLowMemory() {

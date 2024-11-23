@@ -37,13 +37,19 @@ public:
   std::string getCDPVersion() { return duckutils::getCDPVersion(); }
 
   /**
-   * @brief Set the Device Name object
+   * @brief Set GPS data
    * 
-   * @param name 
+   * @param gps 
    */
-  void setGPS(std::string lat, std::string lng, std::string alt, std::string time);
+  void setGPS(std::string gps);
   
-
+  /**
+   * @brief Get GPS data
+   * 
+   * @param None 
+   */
+  std::string getGPS(); 
+  
   /**
    * @brief Set the Device Name object
    * 
@@ -397,6 +403,9 @@ protected:
 
   static bool imAlive(void*);
   static bool reboot(void*);
+
+  private: 
+    std::string gpsData;
 };
 
 #endif

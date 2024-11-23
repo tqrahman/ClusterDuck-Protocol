@@ -29,7 +29,14 @@ bool DuckPacket::prepareForRelaying(BloomFilter *filter, std::vector<byte> dataB
 
   // update the rx packet internal byte buffer
   buffer.assign(dataBuffer.begin(), dataBuffer.end());
-  int hops = buffer[HOP_COUNT_POS]++;
+  int hops = buffer[HOP_COUNT_POS];
+  hops = hops + 1;
+  buffer[HOP_COUNT_POS] = hops;
+  if (hops == 1){
+    std::string hello = "Hello!";
+    // addToBuffer(hello);
+    loginfo_ln(hello.c_str());
+  }
   loginfo_ln("prepareForRelaying: hops count: %d", hops);
   return true;
   
@@ -125,23 +132,20 @@ int DuckPacket::prepareForSending(BloomFilter *filter,
 }
 
 int DuckPacket::addToBuffer(std::vector<byte> additional_data) {
+    
     // Ensure total data doesn't exceed max length
     if (buffer.size() + additional_data.size() > PACKET_LENGTH) {
         return DUCKPACKET_ERR_SIZE_INVALID;
     }
 
-    // If crypto is enabled, encrypt additional data
-    if (duckcrypto::getState()) {
-        std::vector<uint8_t> encryptedAdditional(additional_data.size());
-        duckcrypto::encryptData(additional_data.data(), encryptedAdditional.data(), additional_data.size());
-        buffer.insert(buffer.end(), encryptedAdditional.begin(), encryptedAdditional.end());
-    } else {
-        buffer.insert(buffer.end(), additional_data.begin(), additional_data.end());
-        logdbg_ln("NewData:      %s",duckutils::convertToHex(buffer.data(), buffer.size()).c_str());
-    }
 
+    buffer.insert(buffer.end(), additional_data.begin(), additional_data.end());
+    logdbg_ln("NewData:      %s",duckutils::convertToHex(buffer.data(), buffer.size()).c_str());
+
+    std::vector<byte> dataPortion(buffer.begin() + HEADER_LENGTH, buffer.end());
+    
     // Recalculate CRC
-    uint32_t value = CRC32::calculate(buffer.data() + DATA_CRC_POS, buffer.size() - DATA_CRC_POS);
+    uint32_t value = CRC32::calculate(dataPortion.data(), dataPortion.size());
     
     // Update CRC bytes in-place
     buffer[DATA_CRC_POS] = (value >> 24) & 0xFF;

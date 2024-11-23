@@ -288,7 +288,7 @@ int DuckRadio::getRSSI()
     return lora.getRSSI(); 
 }
 
-int DuckRadio::getSNR()
+double DuckRadio::getSNR()
 { 
     if (!isSetup) {
         logerr_ln("ERROR  LoRa radio not setup");

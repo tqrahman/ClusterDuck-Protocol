@@ -152,9 +152,9 @@ public:
     /**
    * @brief Get the current SNR value.
    *
-   * @returns An integer representing the rssi value.
+   * @returns An double representing the snr value.
    */
-  int getSNR();
+  double getSNR();
 
   /**
    * @brief Transmit a ping message.

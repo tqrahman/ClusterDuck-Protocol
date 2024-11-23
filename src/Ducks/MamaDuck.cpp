@@ -73,7 +73,6 @@ void MamaDuck::handleReceivedPacket() {
   relay = rxPacket->prepareForRelaying(&filter, data);
   if (relay) {
     //TODO: this callback is causing an issue, needs to be fixed for mamaduck to get packet data
-    recvDataCallback(rxPacket->getBuffer());
     // if (insert) {
 
     // }
@@ -83,15 +82,21 @@ void MamaDuck::handleReceivedPacket() {
     // packet being sent below will never be received, especially if the cluster is small
     // there are not many alternative paths to reach other mama ducks that could relay the packet.
     
+    recvDataCallback(rxPacket->getBuffer());
+
     std::vector<byte> additional_data;
 
     int RSSI = duckRadio.getRSSI();
-    int SNR = duckRadio.getSNR();
-    additional_data.push_back((RSSI >> 8) & 0xFF);  // High byte
-    additional_data.push_back(RSSI & 0xFF);         // Low byte
-    additional_data.push_back((SNR >> 8) & 0xFF);   // High byte
-    additional_data.push_back(SNR & 0xFF);   
+    double SNR = duckRadio.getSNR();
 
+    std::string rssiString = std::string(" RSSI:") + std::to_string(RSSI);
+    std::string snrString =  std::string(" SNR:")+ std::to_string(SNR);
+
+    std::string duckGps = Duck::getGPS();
+    additional_data.insert(additional_data.end(), rssiString.begin(), rssiString.end());
+    additional_data.insert(additional_data.end(), snrString.begin(), snrString.end());
+    additional_data.insert(additional_data.end(), duckGps.begin(), duckGps.end());
+    
     rxPacket->addToBuffer(additional_data);
 
     CdpPacket packet = CdpPacket(rxPacket->getBuffer());

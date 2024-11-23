@@ -108,13 +108,13 @@ void PapaDuck::handleReceivedPacket() {
   if (relay) {
     logdbg_ln("relaying:  %s", duckutils::convertToHex(rxPacket->getBuffer().data(), rxPacket->getBuffer().size()).c_str());
     loginfo_ln("invoking callback in the duck application...");
-    
-    recvDataCallback(rxPacket->getBuffer());
 
     int RSSI = duckRadio.getRSSI();
     int SNR = duckRadio.getSNR();
 
     rxPacket->addMetrics(RSSI, SNR);
+
+    recvDataCallback(rxPacket->getBuffer());
     
     if (acksEnabled) {
       const CdpPacket packet = CdpPacket(rxPacket->getBuffer());
