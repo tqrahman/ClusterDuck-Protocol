@@ -115,8 +115,8 @@ void PapaDuck::handleReceivedPacket() {
     int RSSI = duckRadio.getRSSI();
     double SNR = duckRadio.getSNR();
 
-    std::string rssiString = std::string(" RSSI:") + std::to_string(RSSI);
-    std::string snrString =  std::string(" SNR:")+ std::to_string(SNR);
+    std::string rssiString = std::string(" RI:") + std::to_string(RSSI);
+    std::string snrString =  std::string(" SR:")+ std::to_string(SNR);
 
     // std::string duckGps = Duck::getGPS();
     additional_data.insert(additional_data.end(), rssiString.begin(), rssiString.end());
