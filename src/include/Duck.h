@@ -288,6 +288,20 @@ public:
    */
   void decrypt(uint8_t* encryptedData, uint8_t* text, size_t inc);
 
+    /**
+   * @brief sends a ping message
+   *
+   * @return DUCK_ERR_NONE if successfull. An error code otherwise
+   */
+  int sendPing();
+
+    /**
+   * @brief Tell the duck radio to start receiving packets from the mesh network
+   *
+   * @return DUCK_ERR_NONE if successful, an error code otherwise
+   */
+  int startReceive();
+
 protected:
   Duck(Duck const&) = delete;
   Duck& operator=(Duck const&) = delete;
@@ -318,20 +332,6 @@ protected:
    * @return DUCK_ERR_NONE if successfull. An error code otherwise 
    */
   int sendPong();
-  
-  /**
-   * @brief sends a ping message
-   *
-   * @return DUCK_ERR_NONE if successfull. An error code otherwise
-   */
-  int sendPing();
-
-  /**
-   * @brief Tell the duck radio to start receiving packets from the mesh network
-   *
-   * @return DUCK_ERR_NONE if successful, an error code otherwise
-   */
-  int startReceive();
 
   /**
    * @brief Implement the duck's specific behavior.

@@ -154,6 +154,37 @@ int DuckNet::setupWebServer(bool createCaptivePortal, std::string html) {
    
  });
 
+   webServer.on("/controlpanel", HTTP_GET, [&](AsyncWebServerRequest* request) {
+    // if(controlSsid == "" || controlPassword == "") {
+    //   int empty = loadControlCredentials();
+    //   Serial.println("Empty: " + empty);
+    //   if(empty) {
+    //     Serial.println(control_username);
+    //     Serial.println(control_password);
+    //     if (!request->authenticate(control_username, control_password))
+    //   return request->requestAuthentication();
+    //   } else {
+    //     Serial.println(controlSsid);
+    //     Serial.println(controlPassword);
+    //     if (!request->authenticate(controlSsid, controlPassword))
+    //   return request->requestAuthentication();
+    //   }
+
+    // } else {
+    //   Serial.println('ELSE');
+    //   Serial.println(controlSsid);
+    //   Serial.println(controlPassword);
+    //   if (!request->authenticate(controlSsid, controlPassword))
+    //   return request->requestAuthentication();
+    // }
+    
+    AsyncWebServerResponse* response =
+    request->beginResponse(200, "text/html", controlPanel);
+
+    request->send(response);
+    
+  });
+
   webServer.on("/changeSSID", HTTP_POST, [&](AsyncWebServerRequest* request) {
     int paramsNumber = request->params();
     std::string val = "";

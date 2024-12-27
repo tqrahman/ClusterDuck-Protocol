@@ -12,13 +12,13 @@ public:
 
   ~DuckDetect() {}
   
-  /**
-   * @brief Send a ping message to devices in the mesh network.
-   * 
-   * @param startReceive `true` if the device must to be ready to receive a response immediately,
-   * `false` if response needs to be deffered. 
-   */
-  void sendPing(bool startReceive);
+  // /**
+  //  * @brief Send a ping message to devices in the mesh network.
+  //  * 
+  //  * @param startReceive `true` if the device must to be ready to receive a response immediately,
+  //  * `false` if response needs to be deffered. 
+  //  */
+  // void sendPing(bool startReceive);
 
   /**
    * @brief Provide the DuckDetect specific implementation of the base `run()`
