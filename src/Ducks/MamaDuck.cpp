@@ -108,6 +108,7 @@ void MamaDuck::handleReceivedPacket() {
           }
         break;
         case topics::rssi:
+          loginfo_ln("RSSI packet received. Adding metrics to packet.");
           if (packet.hopCount < 2) {
 
             std::vector<byte> additional_data;

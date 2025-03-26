@@ -154,6 +154,7 @@ int DuckPacket::addMetrics(int RSSI, float SNR) {
   size_t originalDataLength = buffer.size() - HEADER_LENGTH;
   
   int snrInt = static_cast<int>(SNR * 10);
+  logdbg_ln("addMetrics: RSSI = %d, SNR = %d", RSSI, snrInt);
   // Create metrics data
   std::vector<byte> additional_data;
   additional_data.push_back((RSSI >> 8) & 0xFF);  
@@ -183,6 +184,8 @@ int DuckPacket::addMetrics(int RSSI, float SNR) {
 
   // Add metrics after updating CRC
   buffer.insert(buffer.end(), additional_data.begin(), additional_data.end());
+
+  logdbg_ln("Successful in adding RSSI and SNR");
 
   return DUCK_ERR_NONE;
 }
