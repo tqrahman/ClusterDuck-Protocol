@@ -126,14 +126,14 @@ int DuckPacket::prepareForSending(BloomFilter *filter,
 
 int DuckPacket::addToBuffer(std::vector<byte> additional_data) {
   
-  logdbg_ln("Adding RSSI and SNR data");
+  loginfo_ln("Adding RSSI and SNR data");
   
   // Ensure total data doesn't exceed max length
   if (buffer.size() + additional_data.size() > PACKET_LENGTH) {
       return DUCKPACKET_ERR_SIZE_INVALID;
   }
 
-  logdbg_ln("Buffer doesn't exceed max limit!");
+  loginfo_ln("Buffer doesn't exceed max limit!");
   
   buffer.insert(buffer.end(), additional_data.begin(), additional_data.end());
   logdbg_ln("NewData:      %s",duckutils::convertToHex(buffer.data(), buffer.size()).c_str());
