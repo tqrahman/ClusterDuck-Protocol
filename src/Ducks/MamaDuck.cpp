@@ -108,8 +108,10 @@ void MamaDuck::handleReceivedPacket() {
           }
         break;
         case topics::rssi:
-          loginfo_ln("RSSI packet received. Adding metrics to packet.");
+          loginfo_ln("RSSI packet received");
           if (packet.hopCount < 2) {
+
+            loginfo_ln("Hop count less than 2. Adding RSSI and SNR to packet.");
 
             std::vector<byte> additional_data;
 
@@ -123,6 +125,7 @@ void MamaDuck::handleReceivedPacket() {
             additional_data.insert(additional_data.end(), snrString.begin(), snrString.end());
             rxPacket->addToBuffer(additional_data);
           }
+        break;
         default:
           err = duckRadio.relayPacket(rxPacket);
           if (err != DUCK_ERR_NONE) {
