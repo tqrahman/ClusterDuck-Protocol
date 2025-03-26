@@ -107,7 +107,7 @@ void MamaDuck::handleReceivedPacket() {
             loginfo_ln("handleReceivedPacket: packet RELAY DONE");
           }
         break;
-        case reservedTopic::rssi: {
+        case topics::rssi: {
           if (packet.hopCount < 2) {
 
             std::vector<byte> additional_data;

@@ -96,6 +96,8 @@ enum topics {
   health = 0x15,
   // Send duck commands
   dcmd = 0x16,
+  // Send RSSI
+  rssi = 0x17,
   // MQ7 Gas Sensor
   mq7 = 0xEF,
   // GP2Y Dust Sensor
@@ -120,7 +122,6 @@ enum reservedTopic {
   gps = 0x03,
   ack = 0x04,
   cmd = 0x05,
-  rssi = 0x06,
   max_reserved = 0x0F
 };
 

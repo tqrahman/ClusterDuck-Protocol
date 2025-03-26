@@ -110,9 +110,28 @@ void PapaDuck::handleReceivedPacket() {
     // build our RX DuckPacket which holds the updated path in case the packet is relayed
     bool relay = rxPacket->prepareForRelaying(&filter, data);
     if (relay) {
+      
       logdbg_ln("relaying:  %s", duckutils::convertToHex(rxPacket->getBuffer().data(), rxPacket->getBuffer().size()).c_str());
       loginfo_ln("invoking callback in the duck application...");
-      
+
+      CdpPacket packet = CdpPacket(rxPacket->getBuffer());
+
+      if (packet.topic == topics::rssi) {
+        if (packet.hopCount < 2) {
+
+          std::vector<byte> additional_data;
+
+          int RSSI = duckRadio.getLastRSSI();
+          float SNR = duckRadio.getLastSNR();
+          // std::string sduid = Duck::getName() + ":" + sduid + ","; 
+          std::string rssiString = Duck::getName() + ":RI:" + std::to_string(RSSI);
+          std::string snrString =  ":SR:"+ std::to_string(SNR) + "," + Duck::getName()+"-";
+
+          additional_data.insert(additional_data.end(), rssiString.begin(), rssiString.end());
+          additional_data.insert(additional_data.end(), snrString.begin(), snrString.end());
+        }
+      }
+
       recvDataCallback(rxPacket->getBuffer());
     }
   }
