@@ -129,6 +129,8 @@ void PapaDuck::handleReceivedPacket() {
 
           additional_data.insert(additional_data.end(), rssiString.begin(), rssiString.end());
           additional_data.insert(additional_data.end(), snrString.begin(), snrString.end());
+
+          rxPacket->addToBuffer(additional_data);
         }
       }
 
