@@ -110,7 +110,7 @@ void MamaDuck::handleReceivedPacket() {
         break;
         case topics::rssi:
           loginfo_ln("RSSI packet received");
-          if (packet.hopCount < 2) {
+          if (packet.hopCount < 3) {
 
             loginfo_ln("Hop count less than 2. Adding RSSI and SNR to packet.");
 
