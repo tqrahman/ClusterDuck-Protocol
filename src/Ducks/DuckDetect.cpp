@@ -69,7 +69,7 @@ void DuckDetect::handleReceivedPacket() {
 
   if (data[TOPIC_POS] == reservedTopic::pong) {
     logdbg("run() - got ping response!");
-    rssiCb(duckRadio.getRSSI());
+    rssiCb(duckRadio.getLastRSSI());
   }
 }
 

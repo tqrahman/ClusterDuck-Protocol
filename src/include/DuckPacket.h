@@ -104,7 +104,7 @@ public:
      * 
      * @returns DUCK_ERR_NONE if the operation was successful, otherwise an error code. 
      */
-    int addMetrics(int RSSI, int SNR);
+    int addMetrics(int RSSI, float SNR);
 
     /**
      * @brief Get the Cdp Packet byte array.
