@@ -17,7 +17,7 @@ int MamaDuck::setupWithDefaults(std::array<byte,8> deviceId, std::string ssid, s
   }
 
   std::string name(deviceId.begin(),deviceId.end());
-  err = Duck::setName(name);
+  Duck::setName(name);
   err = setupWifi(name.c_str());
 
   if (err != DUCK_ERR_NONE) {
