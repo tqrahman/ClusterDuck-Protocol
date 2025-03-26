@@ -107,7 +107,7 @@ void MamaDuck::handleReceivedPacket() {
             loginfo_ln("handleReceivedPacket: packet RELAY DONE");
           }
         break;
-        case topics::rssi: {
+        case topics::rssi:
           if (packet.hopCount < 2) {
 
             std::vector<byte> additional_data;
@@ -122,7 +122,6 @@ void MamaDuck::handleReceivedPacket() {
             additional_data.insert(additional_data.end(), snrString.begin(), snrString.end());
             rxPacket->addToBuffer(additional_data);
           }
-        }
         default:
           err = duckRadio.relayPacket(rxPacket);
           if (err != DUCK_ERR_NONE) {
