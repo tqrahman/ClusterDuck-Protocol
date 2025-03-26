@@ -153,12 +153,13 @@ int DuckPacket::addMetrics(int RSSI, float SNR) {
   // Store original data length before adding metrics
   size_t originalDataLength = buffer.size() - HEADER_LENGTH;
   
+  int snrInt = static_cast<int>(SNR * 10);
   // Create metrics data
   std::vector<byte> additional_data;
   additional_data.push_back((RSSI >> 8) & 0xFF);  
   additional_data.push_back(RSSI & 0xFF);         
-  additional_data.push_back((SNR >> 8) & 0xFF);   
-  additional_data.push_back(SNR & 0xFF);          
+  additional_data.push_back((snrInt >> 8) & 0xFF);   
+  additional_data.push_back(snrInt & 0xFF);          
 
   // Check total size
   if (buffer.size() + additional_data.size() > PACKET_LENGTH) {
