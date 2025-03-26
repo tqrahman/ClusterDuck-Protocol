@@ -149,7 +149,7 @@ int DuckPacket::addToBuffer(std::vector<byte> additional_data) {
   return DUCK_ERR_NONE;
 }
 
-int DuckPacket::addMetrics(int RSSI, int SNR) {
+int DuckPacket::addMetrics(int RSSI, float SNR) {
   // Store original data length before adding metrics
   size_t originalDataLength = buffer.size() - HEADER_LENGTH;
   
