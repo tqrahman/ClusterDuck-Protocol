@@ -284,6 +284,20 @@ public:
    */
   void decrypt(uint8_t* encryptedData, uint8_t* text, size_t inc);
 
+    /**
+   * @brief Get the current RSSI value.
+   *
+   * @returns An integer representing the rssi value.
+   */
+  int getLastRSSI();
+
+  /**
+   * @brief Get the current SNR value.
+   *
+   * @returns A float representing the snr value.
+   */
+  float getLastSNR();
+
 protected:
   Duck(Duck const&) = delete;
   Duck& operator=(Duck const&) = delete;

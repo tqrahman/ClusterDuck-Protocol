@@ -275,6 +275,14 @@ CdpPacket Duck::buildCdpPacket(byte topic, const std::vector<byte> data,
   return packet;
 }
 
+int Duck::getLastRSSI() {
+  return duckRadio.getLastRSSI();
+}
+
+float Duck::getLastSNR() {
+  return duckRadio.getLastSNR();
+}
+
 // TODO: implement this using new packet format
 bool Duck::reboot(void*) {
   /*

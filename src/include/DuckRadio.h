@@ -132,7 +132,14 @@ public:
    *
    * @returns An integer representing the rssi value.
    */
-  int getRSSI();
+  int getLastRSSI();
+
+  /**
+   * @brief Get the current SNR value.
+   *
+   * @returns A float representing the snr value.
+   */
+  float getLastSNR();
 
   /**
    * @brief Transmit a ping message.
@@ -195,6 +202,8 @@ public:
 private:
 
   static DuckRadio* instance;
+  float _lastRSSI;
+  float _lastSNR;
   int channel;  
   static volatile uint16_t interruptFlags;
   static volatile bool receivedFlag;

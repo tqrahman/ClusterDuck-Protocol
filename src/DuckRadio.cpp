@@ -209,10 +209,14 @@ int DuckRadio::readReceivedData(std::vector<byte>* packetBytes) {
         logerr_ln("ERROR data crc mismatch: received: 0x%X, calculated: 0x%X",packet_data_crc, computed_data_crc);
         return DUCKLORA_ERR_HANDLE_PACKET;
     }
+
+    _lastRSSI = lora.getRSSI();
+    _lastSNR = lora.getSNR();
+
 #ifndef CDPCFG_RADIO_SX1262
-    loginfo_ln("RX: rssi: %f snr: %f fe: %d size: %d", lora.getRSSI(), lora.getSNR(), lora.getFrequencyError(true), packet_length);
+    loginfo_ln("RX: rssi: %f snr: %f fe: %d size: %d", _lastRSSI, _lastSNR, lora.getFrequencyError(true), packet_length);
 #else
-    loginfo_ln("RX: rssi: %f snr: %f size: %d", lora.getRSSI(), lora.getSNR(), packet_length);
+    loginfo_ln("RX: rssi: %f snr: %f size: %d", _lastRSSI, _lastSNR, packet_length);
 #endif
 
 
@@ -270,13 +274,22 @@ int DuckRadio::startReceive()
     return DUCK_ERR_NONE;
 }
 
-int DuckRadio::getRSSI()
+int DuckRadio::getLastRSSI()
 { 
     if (!isSetup) {
         logerr_ln("ERROR  LoRa radio not setup");
         return DUCKLORA_ERR_NOT_INITIALIZED;
     }
-    return lora.getRSSI(); 
+    return _lastRSSI; 
+}
+
+float DuckRadio::getLastSNR()
+{ 
+    if (!isSetup) {
+        logerr_ln("ERROR  LoRa radio not setup");
+        return DUCKLORA_ERR_NOT_INITIALIZED;
+    }
+    return _lastSNR; 
 }
 
 // TODO: implement this

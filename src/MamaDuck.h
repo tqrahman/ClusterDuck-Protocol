@@ -54,6 +54,20 @@ public:
 
   bool getDetectState();
 
+  //   /**
+  //  * @brief Get the current RSSI value.
+  //  *
+  //  * @returns An integer representing the rssi value.
+  //  */
+  // int getRSSI();
+
+  // /**
+  //  * @brief Get the current SNR value.
+  //  *
+  //  * @returns A float representing the snr value.
+  //  */
+  // float getSNR();
+
 private :
   rxDoneCallback recvDataCallback;
   void handleReceivedPacket();
