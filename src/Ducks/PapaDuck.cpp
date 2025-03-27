@@ -117,15 +117,16 @@ void PapaDuck::handleReceivedPacket() {
       CdpPacket packet = CdpPacket(rxPacket->getBuffer());
 
       if (packet.topic == topics::rssi) {
-        if (packet.hopCount < 2) {
+        if (packet.hopCount < 3) {
 
           std::vector<byte> additional_data;
 
           int RSSI = duckRadio.getLastRSSI();
           float SNR = duckRadio.getLastSNR();
           // std::string sduid = Duck::getName() + ":" + sduid + ","; 
-          std::string rssiString = Duck::getName() + ":RI:" + std::to_string(RSSI);
-          std::string snrString =  ":SR:"+ std::to_string(SNR) + "," + Duck::getName()+"-";
+          std::string name = Duck::getName();
+          std::string rssiString = name + ":RI:" + std::to_string(RSSI);
+          std::string snrString =  ":SR:"+ std::to_string(SNR) + "," + name +"-";
 
           additional_data.insert(additional_data.end(), rssiString.begin(), rssiString.end());
           additional_data.insert(additional_data.end(), snrString.begin(), snrString.end());
