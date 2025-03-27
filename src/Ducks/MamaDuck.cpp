@@ -109,32 +109,32 @@ void MamaDuck::handleReceivedPacket() {
             loginfo_ln("handleReceivedPacket: packet RELAY DONE");
           }
         break;
-        case topics::rssi:
-          loginfo_ln("RSSI packet received");
-          if (packet.hopCount < 3) {
+        // case topics::rssi:
+        //   loginfo_ln("RSSI packet received");
+        //   if (packet.hopCount < 3) {
 
-            loginfo_ln("Hop count less than 2. Adding RSSI and SNR to packet.");
+        //     loginfo_ln("Hop count less than 2. Adding RSSI and SNR to packet.");
 
-            std::vector<byte> additional_data;
+        //     std::vector<byte> additional_data;
 
-            int RSSI = duckRadio.getLastRSSI();
-            float SNR = duckRadio.getLastSNR();
-            std::string name = Duck::getName();
-            std::string rssiString = name + ":RI:" + std::to_string(RSSI);
-            std::string snrString =  ":SR:"+ std::to_string(SNR) + "," + name +"-";
+        //     int RSSI = duckRadio.getLastRSSI();
+        //     float SNR = duckRadio.getLastSNR();
+        //     std::string name = Duck::getName();
+        //     std::string rssiString = name + ":RI:" + std::to_string(RSSI);
+        //     std::string snrString =  ":SR:"+ std::to_string(SNR) + "," + name +"-";
 
-            additional_data.insert(additional_data.end(), rssiString.begin(), rssiString.end());
-            additional_data.insert(additional_data.end(), snrString.begin(), snrString.end());
-            rxPacket->addToBuffer(additional_data);
+        //     additional_data.insert(additional_data.end(), rssiString.begin(), rssiString.end());
+        //     additional_data.insert(additional_data.end(), snrString.begin(), snrString.end());
+        //     rxPacket->addToBuffer(additional_data);
           
-            err = duckRadio.relayPacket(rxPacket);
-            if (err != DUCK_ERR_NONE) {
-              logerr_ln("====> ERROR handleReceivedPacket failed to relay. rc = %d",err);
-            } else {
-              loginfo_ln("handleReceivedPacket: packet RELAY DONE");
-            }
-          }
-        break;
+        //     err = duckRadio.relayPacket(rxPacket);
+        //     if (err != DUCK_ERR_NONE) {
+        //       logerr_ln("====> ERROR handleReceivedPacket failed to relay. rc = %d",err);
+        //     } else {
+        //       loginfo_ln("handleReceivedPacket: packet RELAY DONE");
+        //     }
+        //   }
+        // break;
         default:
           err = duckRadio.relayPacket(rxPacket);
           if (err != DUCK_ERR_NONE) {
@@ -169,6 +169,21 @@ void MamaDuck::handleReceivedPacket() {
       }
 
     } else {
+      if (packet.topic == topics::rssi && packet.hopCount < 3) {
+        loginfo_ln("Hop count less than 2. Adding RSSI and SNR to packet.");
+
+            std::vector<byte> additional_data;
+
+            int RSSI = duckRadio.getLastRSSI();
+            float SNR = duckRadio.getLastSNR();
+            std::string name = Duck::getName();
+            std::string rssiString = name + ":RI:" + std::to_string(RSSI);
+            std::string snrString =  ":SR:"+ std::to_string(SNR) + "," + name +"-";
+
+            additional_data.insert(additional_data.end(), rssiString.begin(), rssiString.end());
+            additional_data.insert(additional_data.end(), snrString.begin(), snrString.end());
+            rxPacket->addToBuffer(additional_data);
+      }
       err = duckRadio.relayPacket(rxPacket);
       if (err != DUCK_ERR_NONE) {
         logerr_ln("====> ERROR handleReceivedPacket failed to relay. rc = %d",err);
