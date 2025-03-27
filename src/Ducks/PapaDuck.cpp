@@ -16,7 +16,7 @@ int PapaDuck::setupWithDefaults(std::array<byte,8> deviceId, std::string ssid, s
     return err;
   }
 
-  std::string name(deviceId.begin(),deviceId.end());]
+  std::string name(deviceId.begin(),deviceId.end());
 
   Duck::setName(name);
 
