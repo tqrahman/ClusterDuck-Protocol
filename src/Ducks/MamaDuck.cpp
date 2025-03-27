@@ -119,13 +119,20 @@ void MamaDuck::handleReceivedPacket() {
 
             int RSSI = duckRadio.getLastRSSI();
             float SNR = duckRadio.getLastSNR();
-            // std::string sduid = Duck::getName() + ":" + sduid + ","; 
-            std::string rssiString = Duck::getName() + ":RI:" + std::to_string(RSSI);
-            std::string snrString =  ":SR:"+ std::to_string(SNR) + "," + Duck::getName()+"-";
+            std::string name = Duck::getName();
+            std::string rssiString = name + ":RI:" + std::to_string(RSSI);
+            std::string snrString =  ":SR:"+ std::to_string(SNR) + "," + name +"-";
 
             additional_data.insert(additional_data.end(), rssiString.begin(), rssiString.end());
             additional_data.insert(additional_data.end(), snrString.begin(), snrString.end());
             rxPacket->addToBuffer(additional_data);
+          
+            err = duckRadio.relayPacket(rxPacket);
+            if (err != DUCK_ERR_NONE) {
+              logerr_ln("====> ERROR handleReceivedPacket failed to relay. rc = %d",err);
+            } else {
+              loginfo_ln("handleReceivedPacket: packet RELAY DONE");
+            }
           }
         break;
         default:
