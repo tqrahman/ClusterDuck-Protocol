@@ -11,6 +11,13 @@
 
 bool DuckPacket::prepareForRelaying(BloomFilter *filter, std::vector<byte> dataBuffer) {
 
+  int packet_length = dataBuffer.size();
+  int path_pos = dataBuffer.data()[PATH_OFFSET_POS];
+
+  std::array<byte,MAX_PATH_LENGTH> path_section;
+
+  // extract path section from the packet buffer
+  std::copy(&dataBuffer[path_pos], &dataBuffer[packet_length], path_section.begin());
 
   this->reset();
 
@@ -117,6 +124,12 @@ int DuckPacket::prepareForSending(BloomFilter *filter,
     } else {
         buffer.insert(buffer.end(), app_data.begin(), app_data.end());
         logdbg_ln("Data:      %s",duckutils::convertToHex(buffer.data(), buffer.size()).c_str());
+    }
+
+    // ----- insert path if less than 3 hops-----
+    if (buffer[HOP_COUNT_POS] < 3 ){
+      buffer.insert(buffer.end(), duid.begin(), duid.end());
+      logdbg("Path:       %s", duckutils::convertToHex(buffer.data(), buffer.size()).c_str());
     }
 
     logdbg_ln("Built packet: %s", duckutils::convertToHex(buffer.data(), buffer.size()).c_str());
