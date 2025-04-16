@@ -197,11 +197,17 @@ int DuckRadio::readReceivedData(std::vector<byte>* packetBytes) {
     loginfo_ln("readReceivedData: checking path offset integrity");
 
     byte* data = packetBytes->data();
+    
+    int path_pos = data[PATH_OFFSET_POS];
+    if (path_pos <= DATA_POS || path_pos >= packetBytes->size()) {
+      logerr_ln("ERROR path offset %s out of bound. Data is probably corrupted.", path_pos);
+      return DUCKLORA_ERR_HANDLE_PACKET;
+    }
 
     loginfo_ln("readReceivedData: checking data section CRC");
 
     std::vector<byte> data_section;
-    data_section.insert(data_section.end(), &data[DATA_POS], &data[packet_length]);
+    data_section.insert(data_section.end(), &data[DATA_POS], &data[path_pos]);
     uint32_t packet_data_crc = duckutils::toUint32(&data[DATA_CRC_POS]);
     uint32_t computed_data_crc =
             CRC32::calculate(data_section.data(), data_section.size());
