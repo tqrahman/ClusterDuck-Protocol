@@ -198,6 +198,15 @@ int Duck::setupInternet(std::string ssid, std::string password) {
   return err;
 }
 
+void Duck::setGPS(std::string gps) {
+  gpsData = gps;
+}
+
+std::string Duck::getGPS() {
+  return gpsData;
+}
+
+
 #ifdef CDPCFG_WIFI_NONE
 void Duck::processPortalRequest() {}
 #else

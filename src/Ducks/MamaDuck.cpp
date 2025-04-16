@@ -176,6 +176,8 @@ void MamaDuck::handleReceivedPacket() {
 
             int RSSI = duckRadio.getLastRSSI();
             float SNR = duckRadio.getLastSNR();
+
+            std::string duckGps = std::string(" ") + Duck::getGPS();
             std::string name = Duck::getName();
             std::string rssiString = name + "/" + std::to_string(RSSI);
             std::string snrString =  "/"+ std::to_string(SNR) + "," + name +"-";
