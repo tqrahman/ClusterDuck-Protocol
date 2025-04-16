@@ -177,13 +177,14 @@ void MamaDuck::handleReceivedPacket() {
             int RSSI = duckRadio.getLastRSSI();
             float SNR = duckRadio.getLastSNR();
 
-            std::string duckGps = std::string(" ") + Duck::getGPS();
             std::string name = Duck::getName();
-            std::string rssiString = name + "/" + std::to_string(RSSI);
-            std::string snrString =  "/"+ std::to_string(SNR) + "," + name +"-";
+            std::string rssiString = name + "/" + std::to_string(RSSI) + "/";
+            std::string snrString = std::to_string(SNR) + "/";
+            std::string duckGps = Duck::getGPS() + "," + name +"-";
 
             additional_data.insert(additional_data.end(), rssiString.begin(), rssiString.end());
             additional_data.insert(additional_data.end(), snrString.begin(), snrString.end());
+            additional_data.insert(additional_data.end(), duckGps.begin(), duckGps.end());
             rxPacket->addToBuffer(additional_data);
       }
       err = duckRadio.relayPacket(rxPacket);
