@@ -1,6 +1,13 @@
 #ifndef CDPPACKET_H_
 #define CDPPACKET_H_
 
+#include "Arduino.h"
+#include "include/DuckUtils.h"
+#include "DuckLogger.h"
+#include "include/DuckTypes.h"
+#include <string>
+#include <array>
+
 #define MAX_HOPS 6
 
 // field/section length (in bytes)
