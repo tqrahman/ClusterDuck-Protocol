@@ -177,8 +177,8 @@ void MamaDuck::handleReceivedPacket() {
             int RSSI = duckRadio.getLastRSSI();
             float SNR = duckRadio.getLastSNR();
             std::string name = Duck::getName();
-            std::string rssiString = name + ":RI:" + std::to_string(RSSI);
-            std::string snrString =  ":SR:"+ std::to_string(SNR) + "," + name +"-";
+            std::string rssiString = name + "/" + std::to_string(RSSI);
+            std::string snrString =  "/"+ std::to_string(SNR) + "," + name +"-";
 
             additional_data.insert(additional_data.end(), rssiString.begin(), rssiString.end());
             additional_data.insert(additional_data.end(), snrString.begin(), snrString.end());
