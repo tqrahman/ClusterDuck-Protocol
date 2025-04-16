@@ -6,7 +6,7 @@
 #define CLUSTERDUCK_PROTOCOL_DUCKGPS_H
 #include "DuckLogger.h"
 #include <include/cdpcfg.h>
-#include <TinyGPS++.h>
+#include <TinyGPS++.h> 
 #include <ctime>
 #include <memory>
 
@@ -140,7 +140,7 @@ public:
    * @param unsigned long value for number of milliseconds to read data for
    * @return none
    */
-    void readData(unsigned long ms);
+    std::string readData(unsigned long ms);
     double lat(), lng();
     /**
   * @brief helper method for getting [lat,lng] as a GeoJSON object.

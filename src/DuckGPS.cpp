@@ -1,16 +1,18 @@
 //
 // Created by brent on 7/7/2023.
-//
+// 
 
 #include "DuckGPS.h"
-void DuckGPS::readData(unsigned long ms) {
+std::string DuckGPS::readData(unsigned long ms) {
     unsigned long start = millis();
     do
     {
         while (GPSSerial.available())
             gps.encode(GPSSerial.read());
     } while (millis() - start < ms);
-    printData();
+
+    std::string ret = std::string("Lat: "+std::to_string(lat()) + " Lon: "+std::to_string(lng())+" Alt: "+std::to_string(altitude(AltitudeUnit::meter)).append("M") );
+    return ret;
 }
 
 std::time_t DuckGPS::tmConvert_t(int YYYY, byte MM, byte DD, byte hh, byte mm, byte ss)
