@@ -12,13 +12,12 @@ std::string DuckGPS::readData(unsigned long ms) {
     } while (millis() - start < ms);
 
     std::string ret = 
-        "Lt:"+
         std::to_string(lat()) + 
-        "/LG:" + 
+        "/" + 
         std::to_string(lng()) +
-        "/At:" + 
+        "/" + 
         std::to_string(altitude(AltitudeUnit::meter)) +
-        "/TM:" +
+        "/" +
         getTime();
     return ret;
 }
