@@ -17,8 +17,8 @@ public:
         GPSSerial.begin(9600, SERIAL_8N1, CDPCFG_GPS_RX, CDPCFG_GPS_TX);
     };
 #endif
-    DuckGPS(int Rx, int Tx) : GPSSerial(1) {
-        GPSSerial.begin(9600, SERIAL_8N1, Rx, Tx);
+    DuckGPS() : GPSSerial(1) {
+        GPSSerial.begin(9600, SERIAL_8N1, 34, 12);
 
 
     };

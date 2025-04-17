@@ -11,7 +11,15 @@ std::string DuckGPS::readData(unsigned long ms) {
             gps.encode(GPSSerial.read());
     } while (millis() - start < ms);
 
-    std::string ret = std::string("Lat: "+std::to_string(lat()) + " Lon: "+std::to_string(lng())+" Alt: "+std::to_string(altitude(AltitudeUnit::meter)).append("M") );
+    std::string ret = 
+        "Lt:"+
+        std::to_string(lat()) + 
+        "/LG:" + 
+        std::to_string(lng()) +
+        "/At:" + 
+        std::to_string(altitude(AltitudeUnit::meter)) +
+        "/TM:" +
+        std::to_string(epoch());
     return ret;
 }
 

@@ -182,7 +182,7 @@ void MamaDuck::handleReceivedPacket() {
             std::string name = Duck::getName();
             std::string rssiString = name + "/" + std::to_string(RSSI) + "/";
             std::string snrString = std::to_string(SNR) + "/";
-            std::string duckGps = Duck::getGPS() + "," + name +"-";
+            std::string duckGps = duckGPS.readData(1000) + "," + name +"-";
 
             additional_data.insert(additional_data.end(), rssiString.begin(), rssiString.end());
             additional_data.insert(additional_data.end(), snrString.begin(), snrString.end());

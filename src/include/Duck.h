@@ -15,6 +15,7 @@ class Duck;
 #include "DuckRadio.h"
 #include "DuckTypes.h"
 #include "DuckUtils.h"
+#include "../DuckGPS.h"
 
 class Duck {
 
@@ -322,6 +323,8 @@ protected:
   std::array<byte,8> duid;
 
   DuckRadio& duckRadio = DuckRadio::getInstance();
+  
+  DuckGPS duckGPS;
 
 
   DuckNet * const duckNet;
@@ -331,6 +334,7 @@ protected:
   std::array<byte,4> lastMessageMuid;
 
   BloomFilter filter;
+
 
   /**
    * @brief sends a pong message
