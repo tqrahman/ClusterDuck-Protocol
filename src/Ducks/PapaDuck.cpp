@@ -129,9 +129,11 @@ void PapaDuck::handleReceivedPacket() {
           std::string name = Duck::getName();
           std::string rssiString = name + "/" + std::to_string(RSSI);
           std::string snrString =  "/"+ std::to_string(SNR);
+          std::string duckGps = duckGPS.readData(1000);
 
           additional_data.insert(additional_data.end(), rssiString.begin(), rssiString.end());
           additional_data.insert(additional_data.end(), snrString.begin(), snrString.end());
+          additional_data.insert(additional_data.end(), duckGps.begin(), duckGps.end());
 
           rxPacket->addToBuffer(additional_data);
         }

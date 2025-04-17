@@ -19,7 +19,7 @@ std::string DuckGPS::readData(unsigned long ms) {
         "/At:" + 
         std::to_string(altitude(AltitudeUnit::meter)) +
         "/TM:" +
-        std::to_string(epoch());
+        getTime();
     return ret;
 }
 
@@ -44,6 +44,18 @@ std::time_t DuckGPS::epoch(){
             gps.time.minute(),
             gps.time.second());
 }
+
+std::string DuckGPS::getTime() {
+    std::string time = 
+        std::to_string(gps.time.hour()) +
+        "." + 
+        std::to_string(gps.time.minute()) +
+        "." +
+        std::to_string(gps.time.second());
+    
+    return time;
+}
+
 void DuckGPS::printData(){
     // Printing the GPS data
     logdbg_ln("--- GPS ---");

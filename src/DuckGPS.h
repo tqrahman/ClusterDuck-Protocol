@@ -149,6 +149,15 @@ public:
   * @return std::string with GeoJSON object that can be parsed by the developer
   */
     std::string geoJsonPoint();
+
+    /**
+    * @brief helper method for getting time.
+    *
+    * @param none
+    * @return std::string with GPS time
+    */
+    std::string DuckGPS::getTime();
+    
     /**
    * @brief helper method to return time from GPS data
    *
