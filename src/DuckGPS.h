@@ -156,7 +156,7 @@ public:
     * @param none
     * @return std::string with GPS time
     */
-    std::string DuckGPS::getTime();
+    std::string getTime();
     
     /**
    * @brief helper method to return time from GPS data
