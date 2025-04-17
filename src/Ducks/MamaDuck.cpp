@@ -76,7 +76,7 @@ void MamaDuck::handleReceivedPacket() {
     //TODO: this callback is causing an issue, needs to be fixed for mamaduck to get packet data
     loginfo_ln("Invoking callback in the duck application...");
     
-    recvDataCallback(rxPacket->getBuffer());
+    // recvDataCallback(rxPacket->getBuffer());
     
     loginfo_ln("handleReceivedPacket: packet RELAY START");
     // NOTE:
