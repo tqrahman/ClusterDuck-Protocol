@@ -1,5 +1,7 @@
 #include "../PapaDuck.h"
+#include "../MemoryFree.h"
 #include <cassert>
+
 int PapaDuck::setupWithDefaults(std::array<byte,8> deviceId, std::string ssid, std::string password) {
   loginfo_ln("setupWithDefaults...");
 

@@ -23,19 +23,34 @@
 #include <CdpPacket.h>
 #include <queue>
 #include "secrets.h"
+// #include "FastLED.h"
 
 #define CA_CERT
 #ifdef CA_CERT
 #endif
 
+// // Setup for W2812 (LED)
+// #define LED_TYPE WS2812
+// #define DATA_PIN 4
+// #define NUM_LEDS 1
+// #define COLOR_ORDER GRB
+// #define BRIGHTNESS  128
+// #include <pixeltypes.h>
+// CRGB leds[NUM_LEDS];
+
 // --- WiFi Configuration ---
-#define SSID ""                    // Your WiFi SSID (Needs to be 2.4 Ghz network)
-#define PASSWORD ""                // Your WiFi Password
+#define SSID "GreenDesk"                    // Your WiFi SSID (Needs to be 2.4 Ghz network)
+#define PASSWORD "REDUCEREUSERECYCLE"                // Your WiFi Password
 
 // --- Command Definitions ---
 #define CMD_STATE_WIFI "/wifi/"
 #define CMD_STATE_HEALTH "/health/"
 #define CMD_STATE_CHANNEL "/channel/"
+
+//Telemetry - XPowersLib for AXP2101
+#define XPOWERS_CHIP_AXP2101
+#include <XPowersLib.h>
+XPowersPMU PMU;
 
 // --- Global Objects ---
 PapaDuck duck;
@@ -43,6 +58,11 @@ int QUEUE_SIZE_MAX = 5;
 auto timer = timer_create_default();
 bool retry = true; 
 const char commandTopic[] = "iot-2/cmd/+/fmt/+";
+int messagesSeen = 0;
+int publishFailed = 0;
+int disconnectTime;
+bool disconnect = false;
+int INTERVAL_HEALTH = 1007*60*10;
 
 // --- Function Declarations ---
 std::queue<std::vector<byte>> packetQueue;
@@ -56,6 +76,10 @@ void mqttConnect();
 void subscribeTo(const char* topic);
 bool enableRetry(void*);
 void publishQueue();
+bool runHealthCheck(void *);
+JsonDocument getBatteryData();
+JsonDocument createJsonDoc(JsonDocument& payload);
+int publishJson(byte eventTopic, JsonDocument& doc);
 
 // --- WIFI Setup Function ---
 WiFiClientSecure wifiClient;
@@ -176,27 +200,20 @@ int quackJson(CdpPacket packet) {
 
   doc["DeviceID"] = sduid;
   doc["MessageID"] = muid;
-  doc["Payload"].set(payload);
+  
+  JsonDocument inner;
+  DeserializationError err = deserializeJson(inner, payload);    // Convert string to json
+  if (!err) {
+    doc["Payload"] = inner.as<JsonVariant>();                    // if no error add the json to doc
+  } else {
+    doc["Payload"] = payload;                                    // else just upload as is
+  }
+  doc["Payload"] = inner.as<JsonVariant>();
+  
   doc["hops"].set(packet.hopCount);
   doc["duckType"].set(packet.duckType);
 
-  std::string cdpTopic = toTopicString(packet.topic);
-
-  std::string topic = "owl/device/" + std::string(THINGNAME) + "/evt/" + cdpTopic;
-
-  std::string jsonstat;
-  serializeJson(doc, jsonstat);
-
-  if(client.publish(topic.c_str(), jsonstat.c_str())) {
-    Serial.println("[PAPA] Packet forwarded:");
-    serializeJsonPretty(doc, Serial);
-    Serial.println("");
-    Serial.println("[PAPA] Publish ok");
-    return 0;
-  } else {
-    Serial.println("[PAPA] Publish failed");
-    return -1;
-  }
+  return publishJson(packet.topic, doc);
 }
 
 /**
@@ -241,13 +258,18 @@ void handleDuckData(std::vector<byte> packetBuffer) {
  * the ClusterDuck mesh and MQTT forwarding system.
  */
 void setup() {
+
+  // // Initialize LED
+  // FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalSMD5050 );
+  // FastLED.setBrightness(BRIGHTNESS);
+  // leds[0] = CRGB::Cyan;
+  // FastLED.show();
   
   std::string deviceId("PAPADUCK");            // MUST be 8 bytes and unique from other ducks
   std::array<byte,8> devId;
   std::copy(deviceId.begin(), deviceId.end(), devId.begin());
 
   duck.setupWithDefaults(devId, SSID, PASSWORD);
-
   
   duck.onReceiveDuckData(handleDuckData);     // Callback handling incoming data from the network
 
@@ -260,8 +282,26 @@ void setup() {
   Serial.println("[PAPA] Using insecure TLS");
   wifiClient.setInsecure();
   #endif
+
+  //Setup AXP2101
+  Wire.begin(21, 22);
+  if (!PMU.begin(Wire, AXP2101_SLAVE_ADDRESS, 21, 22)) {
+    Serial.println("[MAMA] AXP2101 Begin FAIL");
+    return;
+  } else {
+    Serial.println("[MAMA] AXP2101 Begin PASS");
+    PMU.enableBattDetection();
+    PMU.enableVbusVoltageMeasure();
+    PMU.enableBattVoltageMeasure();
+    PMU.enableSystemVoltageMeasure();
+    PMU.enableTemperatureMeasure();
+  }
   
+  timer.every(INTERVAL_HEALTH, runHealthCheck);
+
   Serial.println("[PAPA] Setup OK! ");
+  // leds[0] = CRGB::Gold;
+  // FastLED.show();
 }
 
 void loop() {
@@ -271,6 +311,10 @@ void loop() {
     std::string password = duck.getPassword();
 
     Serial.println(("[PAPA] WiFi disconnected, reconnecting to local network: " + ssid).c_str());
+
+    // // Turn LED red when disconnected
+    // leds[0] = CRGB::Red;
+    // FastLED.show();
                      
     int err = duck.reconnectWifi(ssid, password);
 
@@ -283,6 +327,9 @@ void loop() {
   if (!client.loop()) {
     if(duck.isWifiConnected()) {
       mqttConnect();
+      // // Turn LED green when connected
+      // leds[0] = CRGB::Green;
+      // FastLED.show();
     }
   }
 
@@ -350,6 +397,8 @@ void mqttConnect() {
       if(!!!client.connect(THINGNAME) && retry) {
          Serial.print("[PAPA] Connection failed, retry in 5 seconds");
          retry = false;
+        //  disconnectTime = millis();
+        //  disconnect = true;
          timer.in(5000, enableRetry);
       }
       Serial.println();
@@ -357,6 +406,13 @@ void mqttConnect() {
       if(packetQueue.size() > 0) {
          publishQueue();
       }
+
+      // disconnect = false;
+      // int timeDisconnected = millis() - disconnectTime;
+      // timeDisconnected = timeDisconnected/1000;
+      // Serial.printf("[PAPA] Reconnected after %d seconds\n", timeDisconnected);
+      // sendPacketFromPapa("{timeDisconnected:" + std::to_string(timeDisconnected) + "}", topics::status);
+
       //Subscribe to command topic to receive commands from cloud
       subscribeTo(commandTopic);
    }
@@ -385,5 +441,88 @@ void publishQueue() {
     } else {
       return;
     }
+  }
+}
+
+bool runHealthCheck(void *) {
+
+  Serial.println("[PAPA] Running PAPA health");
+
+  float pfr = (float)publishFailed / (float)messagesSeen;
+
+  JsonDocument healthData = getBatteryData();
+  healthData["PFR"] = pfr;
+
+  JsonDocument doc = createJsonDoc(healthData);
+
+  publishJson(topics::health, doc);
+
+  return true;
+}
+
+JsonDocument getBatteryData() {
+   
+  JsonDocument payload;
+  
+  // Check if battery is connected
+  if (!PMU.isBatteryConnect()) {
+    Serial.println("[DUCK] No battery connected");
+    payload["error"] = "No battery";
+    return payload;
+  }
+   
+  // Get battery data from AXP2101 using proper XPowersPMU methods
+  float voltage = PMU.getBattVoltage() / 1000.0;  // Convert mV to V
+  float percentage = PMU.getBatteryPercent();     // Now works with XPowersPMU
+  bool charging = PMU.getVbusVoltage() > 4000;    // Charging if VBUS > 4V
+  float temperature = PMU.getTemperature();       // Get temperature from AXP2101 (XPowersPMU returns correct scale)
+
+  payload["V"] = voltage;
+  payload["PCT"] = percentage;
+  payload["CHRG"] = charging;
+  payload["BT"] = temperature;
+
+  return payload;
+}
+
+JsonDocument createJsonDoc(JsonDocument& payload) {
+
+  JsonDocument doc;
+
+  doc["DeviceID"] = duck.getDuckId();
+  doc["MessageID"] = "PAPA";
+  doc["Payload"] = payload;
+  doc["hops"] = 0;
+  doc["duckType"] = 1;
+
+  Serial.println("[PAPA] DOC health data created!");
+
+  return doc;
+}
+
+int publishJson(byte eventTopic, JsonDocument& doc) {
+
+  Serial.println("[PAPA] Publishing packet...");
+
+  messagesSeen++;
+
+  std::string jsonstat;
+  serializeJson(doc, jsonstat);
+  serializeJsonPretty(doc, Serial);
+
+  // Convert the topic to a string
+  std::string cdpTopic = toTopicString(eventTopic);
+  std::string topic = "owl/device/" + std::string(THINGNAME) + "/evt/" + cdpTopic;
+
+  if (client.publish(topic.c_str(), jsonstat.c_str())) {
+    Serial.println("");
+    Serial.println("[PAPA] Publish ok");
+    Serial.printf("[PAPA] Messages seen: %d, Messages failed to publish: %d\n", messagesSeen, publishFailed);
+    return 0;
+  } else {
+    Serial.println("[PAPA] Publish failed");
+    publishFailed++;
+    Serial.printf("[PAPA] Messages seen: %d, Messages failed to publish: %d\n", messagesSeen, publishFailed);
+    return -1;
   }
 }

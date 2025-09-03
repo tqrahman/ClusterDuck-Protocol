@@ -278,6 +278,14 @@ public:
    */
   void decrypt(uint8_t* encryptedData, uint8_t* text, size_t inc);
 
+  /**
+   * @brief Create a UUID.
+   * 
+   * @param length the length of the UUID
+   * @return a string representing the UUID
+   */
+  std::string createUuid(int length = CDPCFG_UUID_LEN);
+
 protected:
   Duck(Duck const&) = delete;
   Duck& operator=(Duck const&) = delete;
