@@ -53,7 +53,7 @@ void MamaDuck::run() {
     handleReceivedPacket();
     rxPacket->reset();
   }
-  processPortalRequest();
+  // processPortalRequest();
 }
 
 void MamaDuck::handleReceivedPacket() {
@@ -203,3 +203,4 @@ void MamaDuck::handleDuckCommand(const CdpPacket & packet) {
 }
 
 bool MamaDuck::getDetectState() { return duckutils::getDetectState(); }
+
