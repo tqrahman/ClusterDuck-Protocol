@@ -40,6 +40,13 @@ size_t getMinFreeHeap();
 size_t getMaxAllocHeap();
 
 /**
+ * @brief Get total heap size
+ * 
+ * @returns total heap size in bytes
+ */
+size_t getTotalHeap();
+
+/**
  * @brief Restart the duck device.
  * 
  */
