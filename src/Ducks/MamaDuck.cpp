@@ -1,6 +1,6 @@
 #include "../MamaDuck.h"
 #include "../MemoryFree.h"
-#include "../DuckEsp.h"
+#include "../include/DuckEsp.h"
 
 
 int MamaDuck::setupWithDefaults(std::array<byte,8> deviceId, std::string ssid, std::string password) {
