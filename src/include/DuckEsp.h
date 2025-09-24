@@ -14,6 +14,7 @@
 #include "cdpcfg.h"
 #include <Arduino.h>
 #include <string>
+#include "esp_heap_caps.h"
 
 namespace duckesp {
 
@@ -22,21 +23,21 @@ namespace duckesp {
  * 
  * @returns free heap memory size in bytes 
  */
-int freeHeapMemory();
+size_t freeHeapMemory();
 
 /**
  * @brief Get lowest level of free heap since boot
  * 
  * @returns memory size in bytes
  */
-int getMinFreeHeap();
+size_t getMinFreeHeap();
 
 /**
  * @brief Get largest block of heap that can be allocated at once
  * 
  * @returns memory size in bytes
  */
-int getMaxAllocHeap();
+size_t getMaxAllocHeap();
 
 /**
  * @brief Restart the duck device.

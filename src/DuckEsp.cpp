@@ -1,13 +1,20 @@
 #include "include/DuckEsp.h"
+#include "esp_heap_caps.h"
 
 namespace duckesp {
 
 #ifdef ESP32
 
   void restartDuck() { ESP.restart(); }
-  int freeHeapMemory() {return ESP.getFreeHeap();}
-  int getMinFreeHeap() { return ESP.getMinFreeHeap(); }
-  int getMaxAllocHeap() { return ESP.getMaxAllocHeap(); }
+  size_t freeHeapMemory() {return ESP.getFreeHeap();}
+  size_t getMinFreeHeap() { return ESP.getMinFreeHeap(); }
+  size_t getMaxAllocHeap() { return ESP.getMaxAllocHeap(); }
+  
+  size_t getTotalHeap() {
+    multi_heap_info_t info;
+    heap_caps_get_info(&info, MALLOC_CAP_8BIT);
+    return info.total_free_bytes + info.total_allocated_bytes;
+  }
 
   std::string getDuckMacAddress(boolean format) {
   char id1[15];
@@ -39,6 +46,7 @@ namespace duckesp {
   } else {
     return unformattedMac;
   }
+
 }
 #else
   void restartDuck() {}

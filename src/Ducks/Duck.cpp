@@ -404,3 +404,4 @@ std::string Duck::getErrorString(int error) {
   
   return "Unknown error";
 }
+

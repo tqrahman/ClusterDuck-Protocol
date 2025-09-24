@@ -452,6 +452,7 @@ bool runHealthCheck(void *) {
 
   JsonDocument healthData = getBatteryData();
   healthData["PFR"] = pfr;
+  healthData["FM"] = freeMemory();
 
   JsonDocument doc = createJsonDoc(healthData);
 

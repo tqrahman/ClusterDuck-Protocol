@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <arduino-timer.h>
 #include "include/Duck.h"
+#include "MemoryFree.h"
 
 
 class PapaDuck : public Duck {
