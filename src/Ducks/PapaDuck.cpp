@@ -1,5 +1,6 @@
 #include "../PapaDuck.h"
-#include "../MemoryFree.h"
+// #include "../MemoryFree.h"
+#include "../include/DuckEsp.h"
 #include <cassert>
 
 int PapaDuck::setupWithDefaults(std::array<byte,8> deviceId, std::string ssid, std::string password) {
