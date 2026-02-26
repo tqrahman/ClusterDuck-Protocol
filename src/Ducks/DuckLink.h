@@ -57,6 +57,7 @@ class DuckLink : public Duck<WifiCapability, RadioType> {
                 if(rxPacket.hopCount <= 0){
                   loginfo_ln("RREQ received from %s. Sending Response!", rxPacket.sduid.data());
                   RouteJSON rrepDoc = RouteJSON(rxPacket.sduid, this->duid);
+                  rrepDoc.addToPath(this->duid, (int8_t)this->duckRadio.getRSSI(), (int8_t)this->duckRadio.getSNR());
                   this->sendRouteResponse(rxPacket.sduid, rrepDoc.asString());
                   // Update routing table with signal info
                   std::optional<Duid> last = rrepDoc.getlastInPath();
