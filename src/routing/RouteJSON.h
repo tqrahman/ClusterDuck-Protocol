@@ -118,8 +118,10 @@ class RouteJSON {
          */
         std::string addToPath(Duid deviceId, int8_t rssi, int8_t snr){
             objPath.push_back(duckutils::toString(deviceId));
-            objRssi.push_back(rssi);
-            objSnr.push_back(snr);
+            if (objPath.size() <= MAX_SIGNAL_HOPS) {
+                objRssi.push_back(rssi);
+                objSnr.push_back(snr);
+            }
             json["path"].to<ArduinoJson::JsonArray>();
             updateJsonPath();
 #ifdef CDP_LOG_DEBUG
@@ -180,6 +182,11 @@ class RouteJSON {
     const std::vector<int8_t>& getHopSnr() const { return objSnr; }
 
   private:
+        // Record signal data for at most this many hops to keep the packet within
+        // the 229-byte DATA limit. Hops beyond this threshold still appear in the
+        // path array but carry no RSSI/SNR entry.
+        static constexpr uint8_t MAX_SIGNAL_HOPS = 3;
+
         ArduinoJson::JsonDocument json;
         std::vector<std::string> objPath;
         std::vector<int8_t> objRssi;
