@@ -36,7 +36,14 @@ class DuckLink : public Duck<WifiCapability, RadioType> {
           }
           CdpPacket rxPacket(rxData.value());
           logdbg_ln("Got data from radio. size: %d",rxPacket.size());
-  
+
+          // Update neighbor cache while radio RSSI/SNR are still fresh
+          this->router.updateNeighborCache(
+              rxPacket.sduid,
+              (int8_t)this->duckRadio.getRSSI(),
+              (int8_t)this->duckRadio.getSNR()
+          );
+
           // recvDataCallback(rxPacket.asBytes());
           
           //Check if Duck is desitination for this packet before relaying

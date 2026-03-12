@@ -15,6 +15,7 @@
 #include <optional>
 #include "bloomfilter.h"
 #include "Neighbor.h"
+#include "NeighborCacheEntry.h"
 enum class NetworkState {SEARCHING, PUBLIC, DISCONNECTED};
 
 class DuckRouter {
@@ -38,6 +39,17 @@ class DuckRouter {
         std::optional<Duid> getBestNextHop(Duid targetDeviceId);
 
         /**
+         * @brief Update (or insert) a neighbor's RSSI/SNR in the cache.
+         * Call immediately after readReceivedData() while radio values are still fresh.
+         */
+        void updateNeighborCache(const Duid& sender, int8_t rssi, int8_t snr);
+
+        /**
+         * @brief Read-only access to the neighbor cache for health packet assembly.
+         */
+        const std::unordered_map<std::string, NeighborCacheEntry>& getNeighborCache() const;
+
+        /**
          * @brief NetworkState if the Duck joins or disconnects from a CDP network
          * @param newState The new NetworkState to join
          */
@@ -57,6 +69,7 @@ class DuckRouter {
 
     private:
         std::unordered_map<std::string, std::list<Neighbor>> routingTable;
+        std::unordered_map<std::string, NeighborCacheEntry> neighborCache;
         BloomFilter filter;
         NetworkState networkState = NetworkState::SEARCHING;
 

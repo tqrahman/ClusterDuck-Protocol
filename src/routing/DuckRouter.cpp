@@ -47,3 +47,13 @@ void DuckRouter::CullRoutingTable(size_t maxSize) {
 BloomFilter& DuckRouter::getFilter(){
     return filter; //just call the bloomfilter function here?
 };
+
+void DuckRouter::updateNeighborCache(const Duid& sender, int8_t rssi, int8_t snr) {
+    std::string key(sender.begin(), sender.end());
+    neighborCache[key] = NeighborCacheEntry{rssi, snr, millis()};
+}
+
+const std::unordered_map<std::string, NeighborCacheEntry>&
+DuckRouter::getNeighborCache() const {
+    return neighborCache;
+}

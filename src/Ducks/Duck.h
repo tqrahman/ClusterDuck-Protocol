@@ -157,6 +157,38 @@ class Duck {
      */
     virtual DuckType getType() = 0;
 
+    /**
+     * @brief Returns the current neighbor cache as a JSON array string.
+     * Use this to build a health packet in your sketch.
+     *
+     * Format: [{"id":"<hex>","r":<rssi>,"s":<snr>,"t":<ms since heard>}, ...]
+     * Cap: up to 8 entries. "t" is milliseconds since the last packet was received.
+     *
+     * Example sketch usage:
+     *   std::string nb = duck.getNeighborCacheJson();
+     *   std::string health = "{\"id\":\"" + duckId + "\",\"up\":" + millis() +
+     *                        ",\"heap\":" + ESP.getFreeHeap() + ",\"nb\":" + nb + "}";
+     *   duck.sendData(topics::health, health);
+     */
+    std::string getNeighborCacheJson() {
+        JsonDocument doc;
+        JsonArray nb = doc.to<JsonArray>();
+        const auto& cache = router.getNeighborCache();
+        int count = 0;
+        for (const auto& [key, entry] : cache) {
+            if (count >= 8) break;
+            JsonObject obj = nb.add<JsonObject>();
+            obj["id"] = key;
+            obj["r"]  = entry.rssi;
+            obj["s"]  = entry.snr;
+            obj["t"]  = (uint32_t)(millis() - entry.lastSeen);
+            count++;
+        }
+        std::string result;
+        serializeJson(doc, result);
+        return result;
+    }
+
     void joinWifiNetwork(std::string ssid = "", std::string password = ""){
       int err = this->duckWifi.joinNetwork(ssid, password);
 
