@@ -153,6 +153,8 @@ void setup() {
   
   duck.onReceiveDuckData(handleDuckData);     // Callback handling incoming data from the network
 
+  client.setBufferSize(1024);
+
   #ifdef CA_CERT
   Serial.println("[PAPA] Using root CA cert");
   wifiClient.setCACert(AWS_CERT_CA);
