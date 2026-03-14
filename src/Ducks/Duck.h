@@ -174,14 +174,15 @@ class Duck {
         JsonDocument doc;
         JsonArray nb = doc.to<JsonArray>();
         const auto& cache = router.getNeighborCache();
+        std::string myKey(this->duid.begin(), this->duid.end());
         int count = 0;
         for (const auto& [key, entry] : cache) {
             if (count >= 8) break;
+            if (key == myKey) continue;
             JsonObject obj = nb.add<JsonObject>();
             obj["id"] = key;
             obj["r"]  = entry.rssi;
             obj["s"]  = entry.snr;
-            obj["t"]  = (uint32_t)(millis() - entry.lastSeen);
             count++;
         }
         std::string result;
