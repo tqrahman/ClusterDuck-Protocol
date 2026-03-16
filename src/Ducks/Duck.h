@@ -171,19 +171,17 @@ class Duck {
      *   duck.sendData(topics::health, health);
      */
     std::string getNeighborCacheJson() {
-        JsonDocument doc;
-        JsonObject nb = doc.to<JsonObject>();
         const auto& cache = router.getNeighborCache();
         std::string myKey(this->duid.begin(), this->duid.end());
+        std::string result;
         int count = 0;
         for (const auto& [key, entry] : cache) {
             if (count >= 8) break;
             if (key == myKey) continue;
-            nb[key] = std::to_string(entry.rssi) + "," + std::to_string(entry.snr);
+            if (!result.empty()) result += "|";
+            result += key + "," + std::to_string(entry.rssi) + "," + std::to_string(entry.snr);
             count++;
         }
-        std::string result;
-        serializeJson(doc, result);
         return result;
     }
 
