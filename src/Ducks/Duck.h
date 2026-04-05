@@ -176,10 +176,12 @@ class Duck {
         std::string result;
         int count = 0;
         for (const auto& [key, entry] : cache) {
-            if (count >= 8) break;
+            if (count >= 3) break;
             if (key == myKey) continue;
             if (!result.empty()) result += "|";
-            result += key + "," + std::to_string(entry.rssi) + "," + std::to_string(entry.snr);
+            result += duckutils::convertToHex((uint8_t*)key.data(), (int)key.size())
+                      + "," + std::to_string(entry.rssi)
+                      + "," + std::to_string(entry.snr);
             count++;
         }
         return result;

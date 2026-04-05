@@ -1,7 +1,7 @@
 #include "CdpPacket.h"
 
 int CdpPacket::prepareForSending() {
-    uint8_t data_length = data.size();
+    size_t data_length = data.size();
     buffer.clear();
 
     if ( data.empty() || data_length > MAX_DATA_LENGTH) {
