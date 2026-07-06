@@ -107,6 +107,11 @@ class DuckLoRa {
         void serviceInterruptFlags();
 
         /**
+         * @brief Returns true while an async LoRa transmit is awaiting TX_DONE.
+         */
+        bool isTransmitting() const { return transmitPending; }
+
+        /**
          * @brief Get the data receive flag.
          * 
          * @return true if the flag is set, false otherwise.
@@ -133,6 +138,7 @@ class DuckLoRa {
         // are read from the radio in loop context by serviceInterruptFlags().
         static volatile bool interruptPending;
         static volatile bool receivedFlag;
+        volatile bool transmitPending = false;
         volatile bool isSetup = false;
         unsigned long lastReceiveTime = 0L;
 

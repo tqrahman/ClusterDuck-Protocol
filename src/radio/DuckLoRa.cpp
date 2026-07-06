@@ -236,7 +236,7 @@ void DuckLoRa::delay(size_t size) {
 
         // Use FreeRTOS task delay, which will not block other tasks
         // must pass ticks, so convert from ms to ticks
-        vTaskDelay(txdelay.count());
+        vTaskDelay(pdMS_TO_TICKS(txdelay.count()));
     }
 }
 
@@ -357,6 +357,7 @@ void DuckLoRa::serviceInterruptFlags() {
         if (flags & RADIOLIB_SX126X_IRQ_TX_DONE ) {
             logdbg_ln("SX1262 Interrupt flag was set: payload transmission complete");
             lora.finishTransmit();
+            transmitPending = false;
             goToReceiveMode(false);
         }
         if (flags & RADIOLIB_SX126X_IRQ_TIMEOUT ) {
@@ -383,6 +384,7 @@ void DuckLoRa::serviceInterruptFlags() {
         }
         if (flags & RADIOLIB_SX127X_CLEAR_IRQ_FLAG_TX_DONE) {
             logdbg_ln("SX127x Interrupt flag was set: payload transmission complete");
+            transmitPending = false;
             goToReceiveMode(false); // go back to receive mode and reset the receive flag
         }
         if (flags & RADIOLIB_SX127X_CLEAR_IRQ_FLAG_CAD_DONE) {
@@ -416,6 +418,10 @@ int DuckLoRa::startTransmitData(uint8_t* data, int length) {
         logerr_ln("ERROR  LoRa radio not setup");
         return DUCKLORA_ERR_NOT_INITIALIZED;
     }
+    if (transmitPending) {
+        logerr_ln("ERROR startTransmitData called while TX is pending");
+        return DUCKLORA_ERR_TRANSMIT;
+    }
 
     loginfo_ln("TX data");
     logdbg_ln(" -> len: %d, %s", length, duckutils::toString(data, length).c_str());
@@ -425,6 +431,7 @@ int DuckLoRa::startTransmitData(uint8_t* data, int length) {
     tx_err = lora.startTransmit(data, length);
     switch (tx_err) {
         case RADIOLIB_ERR_NONE:
+            transmitPending = true;
             loginfo_ln("TX data done in : %d ms",(millis() - t1));
             break;
 
