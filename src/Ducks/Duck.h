@@ -59,13 +59,11 @@ class Duck {
       
             //routeProtocol.processPacket(rxQueue.dequeu())
             //semd a txPacket if any -- hopefully doing both doesnt take too much time
-            if (!duckRadio.isTransmitting()) {
-              std::optional<CdpPacket> txPacket = txQueue.dequeue();
-              if(txPacket.has_value()){
-                Serial.println("send a queued packet");
-
-                this->sendToRadio(txPacket.value());
-              }
+            std::optional<CdpPacket> txPacket = txQueue.dequeue(); 
+            if(txPacket.has_value()){
+              Serial.println("send a queued packet");
+             
+              this->sendToRadio(txPacket.value());
             }
         }
       } else {
