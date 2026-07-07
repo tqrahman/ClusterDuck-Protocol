@@ -315,9 +315,7 @@ int DuckLoRa::sleep()
 
 void DuckLoRa::serviceInterruptFlags() {
     if (!DuckLoRa::interruptPending) {
-        if (!transmitPending) {
-            return;
-        }
+        return;
     }
 
     // Clear the pending latch BEFORE reading the flags off the radio. If DIO1
@@ -329,12 +327,6 @@ void DuckLoRa::serviceInterruptFlags() {
     // Safe to touch SPI here: this runs in loop context, not the ISR.
     uint16_t flags = lora.getIrqFlags();
     if (flags == 0) {
-        if (transmitPending && (millis() - transmitStartTime) > TX_DONE_WATCHDOG_MS) {
-            logerr_ln("ERROR TX_DONE watchdog expired, resetting LoRa receive mode");
-            transmitPending = false;
-            lora.finishTransmit();
-            goToReceiveMode(false);
-        }
         return;
     }
 
@@ -440,7 +432,6 @@ int DuckLoRa::startTransmitData(uint8_t* data, int length) {
     switch (tx_err) {
         case RADIOLIB_ERR_NONE:
             transmitPending = true;
-            transmitStartTime = millis();
             loginfo_ln("TX data done in : %d ms",(millis() - t1));
             break;
 
