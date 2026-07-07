@@ -139,8 +139,10 @@ class DuckLoRa {
         static volatile bool interruptPending;
         static volatile bool receivedFlag;
         volatile bool transmitPending = false;
+        unsigned long transmitStartTime = 0L;
         volatile bool isSetup = false;
         unsigned long lastReceiveTime = 0L;
+        static constexpr unsigned long TX_DONE_WATCHDOG_MS = 15000L;
 
         static void setReceiveFlag(bool value) { receivedFlag = value; }
 
