@@ -39,6 +39,17 @@ struct LoRaConfigParams {
     void (*func)(void); 
 };
 
+struct DuckRadioTelemetry {
+    uint32_t rxTotal = 0;
+    uint32_t rxValid = 0;
+    uint32_t rxCrcErrors = 0;
+    uint32_t rxInvalidLength = 0;
+    uint32_t rxReadFailures = 0;
+    uint32_t txAttempts = 0;
+    uint32_t txSuccess = 0;
+    uint32_t txFailures = 0;
+};
+
 // const struct LoRaPins {
 //     const int ss;
 //     /// chip reset pin
@@ -113,6 +124,9 @@ class DuckLoRa {
          */
         static bool getReceiveFlag() { return receivedFlag; }
 
+        DuckRadioTelemetry getTelemetry() const { return telemetry; }
+        void resetTelemetry() { telemetry = DuckRadioTelemetry{}; }
+
         /**
          * @brief Get the current RSSI value.
          *
@@ -135,6 +149,7 @@ class DuckLoRa {
         static volatile bool receivedFlag;
         volatile bool isSetup = false;
         unsigned long lastReceiveTime = 0L;
+        DuckRadioTelemetry telemetry;
 
         static void setReceiveFlag(bool value) { receivedFlag = value; }
 

@@ -35,6 +35,7 @@ class Duck {
      */
     void run(){
       duckRadio.serviceInterruptFlags();
+      syncTelemetry();
       Duck::logIfLowMemory();
       if(router.getNetworkState() == NetworkState::PUBLIC) {
         if (duckRadio.getReceiveFlag()){
@@ -45,6 +46,7 @@ class Duck {
               return;
             }
             CdpPacket rxPacket(rxData.value());
+            recordReceivedPacket(rxPacket);
             logdbg_ln("Got data from radio. size: %d",rxPacket.size());
             handleReceivedPacket(rxPacket);
           } else{ 
@@ -83,6 +85,7 @@ class Duck {
             attemptNetworkJoin();
             if(router.getNetworkState() == NetworkState::SEARCHING && (millis() > (NET_JOIN_DELAY * 3 + 5000L))){
               loginfo_ln("No existing network found, creating new CDP network...");
+              telemetry.joinFailures++;
               router.setNetworkState(NetworkState::PUBLIC);
             }
         }
@@ -154,15 +157,20 @@ class Duck {
         std::optional<Duid> nextHop = router.getBestNextHop(txPacket.dduid);
         if(nextHop.has_value() || txPacket.dduid == BROADCAST_DUID){
           router.getFilter().assignUniqueMessageId(txPacket);
-          txQueue.enqueue(txPacket);
-          err = DUCK_ERR_NONE;
+          if (!txQueue.enqueue(txPacket)) {
+            telemetry.txQueueDrops++;
+            err = DUCKLORA_ERR_TRANSMIT;
+          }
         } else {
             if((millis() - this->lastRreqTime) > 30000){
               loginfo_ln("[DUCK] Destination not in table, sending new RREQ.");
               RouteJSON rreqDoc = RouteJSON(txPacket.dduid, this->duid);
               rreqDoc.addToPath(this->duid);
               router.getFilter().assignUniqueMessageId(txPacket);
-              txQueue.enqueue(txPacket); //temporary, need to figure out how to defer until rrep received
+              if (!txQueue.enqueue(txPacket)) {
+                telemetry.txQueueDrops++;
+                err = DUCKLORA_ERR_TRANSMIT;
+              }
               sendRouteRequest(txPacket.dduid, rreqDoc);
               this->lastRreqTime = millis();
             }
@@ -193,15 +201,20 @@ class Duck {
         std::optional<Duid> nextHop = router.getBestNextHop(txPacket.dduid);
         if(nextHop.has_value() || txPacket.dduid == BROADCAST_DUID){
           router.getFilter().assignUniqueMessageId(txPacket);
-          txQueue.enqueue(txPacket);
-          err = DUCK_ERR_NONE;
+          if (!txQueue.enqueue(txPacket)) {
+            telemetry.txQueueDrops++;
+            err = DUCKLORA_ERR_TRANSMIT;
+          }
         } else {
             if((millis() - this->lastRreqTime) > 30000){
               loginfo_ln("[DUCK] Destination not in table, sending new RREQ.");
               RouteJSON rreqDoc = RouteJSON(txPacket.dduid, this->duid);
               rreqDoc.addToPath(this->duid);
               router.getFilter().assignUniqueMessageId(txPacket);
-              txQueue.enqueue(txPacket); //temporary, need to figure out how to defer until rrep received
+              if (!txQueue.enqueue(txPacket)) {
+                telemetry.txQueueDrops++;
+                err = DUCKLORA_ERR_TRANSMIT;
+              }
               sendRouteRequest(txPacket.dduid, rreqDoc); //shouldn't this enqueue a route req packet? should we queue the original packet?
               this->lastRreqTime = millis();
             }
@@ -285,10 +298,16 @@ class Duck {
       int err = DUCK_ERR_NONE;
       if(alreadySeen){
         logdbg_ln("broadcastPacket: Packet already seen. No relay.");
+        telemetry.duplicatePackets++;
       } else{
         packet.hopCount++;
-        txQueue.enqueue(packet);
-        err = DUCK_ERR_NONE;
+        if (txQueue.enqueue(packet)) {
+          telemetry.forwardedPackets++;
+        } else {
+          telemetry.txQueueDrops++;
+          telemetry.forwardFailures++;
+          err = DUCKLORA_ERR_TRANSMIT;
+        }
       }
       return err;
     }
@@ -311,6 +330,8 @@ class Duck {
       } else{
         std::string strDuid(packet.dduid.begin(), packet.dduid.end());
         logdbg_ln("no entry for this id, skipping relay DDuid: %s", strDuid.c_str());
+        telemetry.forwardFailures++;
+        telemetry.routeMisses++;
       }
       return err;
     }
@@ -367,6 +388,7 @@ class Duck {
     void attemptNetworkJoin(){
       std::optional<CdpPacket> cdpNode = checkForNetworks();
       if(cdpNode.has_value()){
+        telemetry.joinSuccesses++;
         //add an entry for the nearest neighbor, next hop is itself
         if(cdpNode->duckType == DuckType::PAPA){
           router.insertIntoRoutingTable(PAPADUCK_DUID, PAPADUCK_DUID, this->getSignalScore()); //papa not being stored as unique id for now
@@ -376,9 +398,12 @@ class Duck {
         router.setNetworkState(NetworkState::PUBLIC);
       } else {
         if((millis() - this->lastRreqTime) > NET_JOIN_DELAY){
+          telemetry.joinAttempts++;
           RouteJSON rreqDoc = RouteJSON(BROADCAST_DUID, this->duid);
           rreqDoc.addToPath(this->duid);
-          sendRouteRequest(BROADCAST_DUID, rreqDoc);
+          if (sendRouteRequest(BROADCAST_DUID, rreqDoc) != DUCK_ERR_NONE) {
+            telemetry.joinFailures++;
+          }
           loginfo_ln("searching for networks....");
           lastRreqTime = millis();
         }
@@ -390,6 +415,7 @@ class Duck {
      * @returns DUCK_ERR_NONE if the data was sent successfully, an error code otherwise.
      */
     int sendRouteRequest(Duid targetDevice, RouteJSON json){
+      telemetry.routeRequestsSent++;
       std::string strJson = json.asString();
       std::vector<uint8_t> app_data;
       app_data.insert(app_data.end(), strJson.begin(), strJson.end());
@@ -405,6 +431,7 @@ class Duck {
      * @returns DUCK_ERR_NONE if the data was sent successfully, an error code otherwise.
      */
     int sendRouteResponse(Duid targetDevice, std::string data){
+      telemetry.routeResponsesSent++;
       std::vector<uint8_t> app_data;
       app_data.insert(app_data.end(), data.begin(), data.end());
       int err = sendReservedTopicData(targetDevice, reservedTopic::rrep, app_data);
@@ -420,10 +447,35 @@ class Duck {
      */
     static bool sendHealth(void* p){
       Duck* duckInstance = static_cast<Duck*>(p);
+      duckInstance->syncTelemetry();
+      const DuckRadioTelemetry radio = duckInstance->duckRadio.getTelemetry();
+      const DuckRadioTelemetry base = duckInstance->radioTelemetryBaseline;
 
       JsonDocument doc;
-      doc["C"] = std::to_string(duckInstance->counter);
-      doc["FM"] = std::to_string(freeMemory());
+      // Compact wire keys are documented in docs/HEALTH_PACKET.md.
+      doc["C"] = duckInstance->counter;
+      doc["M"] = freeMemory();
+      doc["RT"] = radio.rxTotal - base.rxTotal;
+      doc["RV"] = radio.rxValid - base.rxValid;
+      doc["RC"] = radio.rxCrcErrors - base.rxCrcErrors;
+      doc["RI"] = radio.rxInvalidLength - base.rxInvalidLength;
+      doc["RR"] = radio.rxReadFailures - base.rxReadFailures;
+      doc["TA"] = radio.txAttempts - base.txAttempts;
+      doc["TS"] = radio.txSuccess - base.txSuccess;
+      doc["TF"] = radio.txFailures - base.txFailures;
+      doc["QD"] = duckInstance->telemetry.rxQueueDrops;
+      doc["QT"] = duckInstance->telemetry.txQueueDrops;
+      doc["D"] = duckInstance->telemetry.duplicatePackets;
+      doc["FD"] = duckInstance->telemetry.forwardedPackets;
+      doc["FF"] = duckInstance->telemetry.forwardFailures;
+      doc["JA"] = duckInstance->telemetry.joinAttempts;
+      doc["JS"] = duckInstance->telemetry.joinSuccesses;
+      doc["JF"] = duckInstance->telemetry.joinFailures;
+      doc["RQS"] = duckInstance->telemetry.routeRequestsSent;
+      doc["RQR"] = duckInstance->telemetry.routeRequestsReceived;
+      doc["RPS"] = duckInstance->telemetry.routeResponsesSent;
+      doc["RPR"] = duckInstance->telemetry.routeResponsesReceived;
+      doc["RM"] = duckInstance->telemetry.routeMisses;
       std::string jsonString;
       serializeJson(doc, jsonString);
         
@@ -431,8 +483,7 @@ class Duck {
       if (err != DUCK_ERR_NONE) {
         loginfo_ln("[DUCK] health message failed to send.");
       } else {
-        duckInstance->counter++;
-        loginfo_ln("[DUCK] health message successfully sent.");
+        loginfo_ln("[DUCK] health message queued; counters reset after TX_DONE.");
       }
       return true;
     }
@@ -554,7 +605,28 @@ class Duck {
     //Telemetry
     const int HEALTH_INTERVAL = (1000 * 60 * 60 * 2) + (1000 * 60 * 12) ; //2 Hours 12 Minutes
     const int SIGNAL_INTERVAL = (1000 * 60 * 60 * 3) + (1000 * 60 * 15); //3 hours 15 minutes
-    int counter = 1;
+    uint32_t counter = 0;
+    struct DuckTelemetry {
+      uint32_t rxQueueDrops = 0;
+      uint32_t txQueueDrops = 0;
+      uint32_t duplicatePackets = 0;
+      uint32_t forwardedPackets = 0;
+      uint32_t forwardFailures = 0;
+      uint32_t joinAttempts = 0;
+      uint32_t joinSuccesses = 0;
+      uint32_t joinFailures = 0;
+      uint32_t routeRequestsSent = 0;
+      uint32_t routeRequestsReceived = 0;
+      uint32_t routeResponsesSent = 0;
+      uint32_t routeResponsesReceived = 0;
+      uint32_t routeMisses = 0;
+    };
+    DuckTelemetry telemetry;
+    DuckRadioTelemetry radioTelemetryBaseline;
+    uint32_t lastObservedTxSuccess = 0;
+    uint32_t healthTxSuccessBaseline = 0;
+    uint32_t healthTxFailureBaseline = 0;
+    bool healthTxPending = false;
     Timer<10> duckTimer;
 
     /** 
@@ -571,6 +643,7 @@ class Duck {
           result = std::nullopt;
         } else{
           CdpPacket rxPacket(rxData.value());
+          recordReceivedPacket(rxPacket);
           if((rxPacket.topic == reservedTopic::rrep) && (rxPacket.dduid == this->duid)){ //should all packets without valid crc immediately be discarded at a lower level?
             result = std::optional<CdpPacket>{rxPacket}; 
           } else {
@@ -602,9 +675,15 @@ class Duck {
         //   return err;
         // }
         if (topic == reservedTopic::rreq){
-          reqQueue.enqueue(txPacket);
+          if (!reqQueue.enqueue(txPacket)) {
+            telemetry.txQueueDrops++;
+            err = DUCKLORA_ERR_TRANSMIT;
+          }
         } else{
-          txQueue.enqueue(txPacket);
+          if (!txQueue.enqueue(txPacket)) {
+            telemetry.txQueueDrops++;
+            err = DUCKLORA_ERR_TRANSMIT;
+          }
         }
         
       } 
@@ -629,6 +708,10 @@ class Duck {
       err = duckRadio.sendData(txPacket.asBytes());
       if (err != DUCK_ERR_NONE) {
         logerr_ln("ERROR Lora sendData failed, err = %d", err);
+      } else if (txPacket.topic == topics::health) {
+        healthTxPending = true;
+        healthTxSuccessBaseline = duckRadio.getTelemetry().txSuccess;
+        healthTxFailureBaseline = duckRadio.getTelemetry().txFailures;
       }
      
       return err;
@@ -641,9 +724,36 @@ class Duck {
           return;
         }
         CdpPacket rxPacket(rxData.value());
+        recordReceivedPacket(rxPacket);
         logdbg_ln("Got data from radio. size: %d",rxPacket.size());
-        rxQueue.enqueue(rxPacket);
+        if (!rxQueue.enqueue(rxPacket)) {
+          telemetry.rxQueueDrops++;
+        }
         //move handle receieve packet to duck base, turn old handlereceive into route protocol?
+    }
+
+    void syncTelemetry() {
+      const DuckRadioTelemetry current = duckRadio.getTelemetry();
+      if (current.txSuccess > lastObservedTxSuccess) {
+        counter += current.txSuccess - lastObservedTxSuccess;
+        lastObservedTxSuccess = current.txSuccess;
+      }
+
+      if (healthTxPending && current.txSuccess > healthTxSuccessBaseline) {
+        radioTelemetryBaseline = current;
+        telemetry = DuckTelemetry{};
+        healthTxPending = false;
+      } else if (healthTxPending && current.txFailures > healthTxFailureBaseline) {
+        healthTxPending = false;
+      }
+    }
+
+    void recordReceivedPacket(const CdpPacket& packet) {
+      if (packet.topic == reservedTopic::rreq) {
+        telemetry.routeRequestsReceived++;
+      } else if (packet.topic == reservedTopic::rrep) {
+        telemetry.routeResponsesReceived++;
+      }
     }
     
 };

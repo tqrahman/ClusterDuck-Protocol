@@ -8,13 +8,16 @@ class SizedQueue{
   SizedQueue(int maxSize = CDPCFG_MAX_QUEUE_SIZE): maxSize(maxSize) {}
   ~SizedQueue() = default; 
 
-  void enqueue(CdpPacket packet){ //pass copy or reference here?
+  bool enqueue(CdpPacket packet){ //pass copy or reference here?
     if (packetQueue.size() < maxSize){
       packetQueue.push(packet);
+      loginfo_ln("[ROUTER] queue size: %d", packetQueue.size());
+      return true;
     }else{
      loginfo_ln("[ROUTER] packet queue max size exceeded");
     }
     loginfo_ln("[ROUTER] queue size: %d", packetQueue.size());
+    return false;
   }
 
   std::optional<CdpPacket> dequeue(){

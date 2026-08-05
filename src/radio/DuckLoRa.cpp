@@ -160,6 +160,7 @@ std::optional<std::vector<uint8_t>> DuckLoRa::readReceivedData() { //return a st
     packet_length = lora.getPacketLength();
 
     if (packet_length < MIN_PACKET_LENGTH || packet_length > PACKET_LENGTH) {
+        telemetry.rxInvalidLength++;
         logerr_ln("ERROR  handlePacket rx data size invalid: %d", packet_length);
         goToReceiveMode(true); // go back to receive mode and reset the receive flag
         return std::nullopt;
@@ -174,6 +175,7 @@ std::optional<std::vector<uint8_t>> DuckLoRa::readReceivedData() { //return a st
     rxState = goToReceiveMode(true);
 
     if (err != RADIOLIB_ERR_NONE) {
+        telemetry.rxReadFailures++;
         logerr_ln("ERROR  readReceivedData failed. err = %d", DUCKLORA_ERR_HANDLE_PACKET);
     }
 
@@ -191,6 +193,7 @@ std::optional<std::vector<uint8_t>> DuckLoRa::readReceivedData() { //return a st
     uint32_t computed_data_crc =
             CRC32::calculate(data_section.data(), data_section.size());
     if (computed_data_crc != packet_data_crc) {
+        telemetry.rxCrcErrors++;
         lastReceiveTime = millis(); //even if the packet is invalid, we need to know when we last received
         logerr_ln("ERROR data crc mismatch: received: 0x%X, calculated: 0x%X",packet_data_crc, computed_data_crc);
         return std::nullopt;
@@ -208,6 +211,7 @@ std::optional<std::vector<uint8_t>> DuckLoRa::readReceivedData() { //return a st
         return std::nullopt;
     }
     lastReceiveTime = millis(); // always update the last receive time
+    telemetry.rxValid++;
     std::vector<uint8_t> packetVector(data, data + packet_length);
     return packetVector;
 }
@@ -332,6 +336,8 @@ void DuckLoRa::serviceInterruptFlags() {
 
 #ifdef CDPCFG_RADIO_SX1262
         // SX1262 flags
+        const bool sx1262RxError = (flags & RADIOLIB_SX126X_IRQ_CRC_ERR) ||
+                                   (flags & RADIOLIB_SX126X_IRQ_HEADER_ERR);
         if (flags & RADIOLIB_SX126X_CMD_CLEAR_IRQ_STATUS) {
             logdbg_ln("SX1262 Interrupt flag was set: clear IRQ status");
         }
@@ -339,6 +345,8 @@ void DuckLoRa::serviceInterruptFlags() {
             logdbg_ln("SX1262 Interrupt flag was set: clear device errors");
         }
         if (flags & RADIOLIB_SX126X_IRQ_CRC_ERR ) {
+            telemetry.rxTotal++;
+            telemetry.rxCrcErrors++;
             logdbg_ln("SX1262 Interrupt flag was set: payload CRC error");
             // goToReceiveMode() re-arms the radio (startReceive clears the IRQ
             // status). Do NOT call lora.standby() afterwards: that immediately
@@ -346,35 +354,44 @@ void DuckLoRa::serviceInterruptFlags() {
             goToReceiveMode(false);
         }
         if (flags & RADIOLIB_SX126X_IRQ_HEADER_ERR ) {
+            telemetry.rxTotal++;
+            telemetry.rxCrcErrors++;
             logdbg_ln("SX1262 Interrupt flag was set: header CRC error");
             goToReceiveMode(false);
         }
-        if (flags & RADIOLIB_SX126X_IRQ_RX_DONE ) {
+        if ((flags & RADIOLIB_SX126X_IRQ_RX_DONE) && !sx1262RxError) {
+            telemetry.rxTotal++;
             logdbg_ln("SX1262 Interrupt flag was set: packet reception complete");
             setReceiveFlag(true);
             lora.standby(); // we are done receiving, go to standby. We can't sleep because read buffer is not empty
         }
         if (flags & RADIOLIB_SX126X_IRQ_TX_DONE ) {
+            telemetry.txSuccess++;
             logdbg_ln("SX1262 Interrupt flag was set: payload transmission complete");
             lora.finishTransmit();
             goToReceiveMode(false);
         }
         if (flags & RADIOLIB_SX126X_IRQ_TIMEOUT ) {
+            telemetry.txFailures++;
             logdbg_ln("SX1262 Interrupt flag was set: timeout");
             goToReceiveMode(false);
         }
 #else
         // SX127X flags
+        const bool sx127xRxCrcError = flags & RADIOLIB_SX127X_CLEAR_IRQ_FLAG_PAYLOAD_CRC_ERROR;
         if (flags & RADIOLIB_SX127X_CLEAR_IRQ_FLAG_RX_TIMEOUT) {
             goToReceiveMode(true); // go back to receive mode and reset the receive flag
             logdbg_ln("SX127x Interrupt flag was set: timeout");
         }
-        if (flags & RADIOLIB_SX127X_CLEAR_IRQ_FLAG_RX_DONE) {
+        if ((flags & RADIOLIB_SX127X_CLEAR_IRQ_FLAG_RX_DONE) && !sx127xRxCrcError) {
+            telemetry.rxTotal++;
             logdbg_ln("SX127x Interrupt flag was set: packet reception complete");
             setReceiveFlag(true); // set the receive flag and we stay in receive mode
             lora.standby(); // we are done receiving, go to standby. We can't sleep because read buffer is not empty
         }
         if (flags & RADIOLIB_SX127X_CLEAR_IRQ_FLAG_PAYLOAD_CRC_ERROR) {
+            telemetry.rxTotal++;
+            telemetry.rxCrcErrors++;
             goToReceiveMode(true); // go back to receive mode and reset the receive flag
             logdbg_ln("SX127x Interrupt flag was set: payload CRC error");
         }
@@ -382,6 +399,7 @@ void DuckLoRa::serviceInterruptFlags() {
             logdbg_ln("SX127x Interrupt flag was set: valid header received");
         }
         if (flags & RADIOLIB_SX127X_CLEAR_IRQ_FLAG_TX_DONE) {
+            telemetry.txSuccess++;
             logdbg_ln("SX127x Interrupt flag was set: payload transmission complete");
             goToReceiveMode(false); // go back to receive mode and reset the receive flag
         }
@@ -417,6 +435,8 @@ int DuckLoRa::startTransmitData(uint8_t* data, int length) {
         return DUCKLORA_ERR_NOT_INITIALIZED;
     }
 
+    telemetry.txAttempts++;
+
     loginfo_ln("TX data");
     logdbg_ln(" -> len: %d, %s", length, duckutils::toString(data, length).c_str());
 
@@ -432,16 +452,19 @@ int DuckLoRa::startTransmitData(uint8_t* data, int length) {
             // the supplied packet was longer than 256 bytes
             logerr_ln("ERROR startTransmitData too long!");
             err = DUCKLORA_ERR_MSG_TOO_LARGE;
+            telemetry.txFailures++;
             break;
 
         case RADIOLIB_ERR_TX_TIMEOUT:
             logerr_ln("ERROR startTransmitData timeout!");
             err = DUCKLORA_ERR_TIMEOUT;
+            telemetry.txFailures++;
             break;
 
         default:
             logerr_ln("ERROR startTransmitData failed, err: %d", tx_err);
             err = DUCKLORA_ERR_TRANSMIT;
+            telemetry.txFailures++;
             break;
     }
 
